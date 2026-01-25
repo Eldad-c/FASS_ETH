@@ -47,6 +47,7 @@ const queueColors: Record<QueueLevel, string> = {
   short: 'text-green-600 dark:text-green-400',
   medium: 'text-yellow-600 dark:text-yellow-400',
   long: 'text-red-600 dark:text-red-400',
+  very_long: 'text-red-600 dark:text-red-400',
 }
 
 function getOverallStatus(station: StationWithFuelStatus): AvailabilityStatus {
@@ -111,7 +112,7 @@ export function StationList({ stations }: StationListProps) {
               <div className="flex items-start gap-3">
                 {/* Overall Status Indicator */}
                 <div className={`flex-shrink-0 h-12 w-12 rounded-xl ${StatusIndicator.color} flex items-center justify-center shadow-sm`}>
-                  <Fuel className="h-6 w-6 text-white" />
+                  <FuelIcon className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-lg mb-1">
@@ -223,8 +224,8 @@ export function StationList({ stations }: StationListProps) {
   )
 }
 
-// Fuel icon import for the status indicator
-function Fuel({ className }: { className?: string }) {
+// FuelIcon component for the status indicator
+function FuelIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

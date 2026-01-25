@@ -63,7 +63,7 @@ export async function GET(request: Request) {
         .select(`
           *,
           tankers (*),
-          stations (*)
+          destination_station:stations!trips_destination_station_id_fkey(*)
         `)
         .eq('id', tripId)
         .single()
@@ -81,14 +81,7 @@ export async function GET(request: Request) {
         .limit(1)
         .maybeSingle()
 
-      // Handle stations - could be object or array, but should be single object for destination
-      const stations = Array.isArray(trip.stations)
-        ? trip.stations[0]
-        : (trip.stations as { id: string; name: string; latitude: number; longitude: number } | null | undefined)
-      
-      const destinationStation = trip.destination_station_id && stations
-        ? stations
-        : null
+      const destinationStation = trip.destination_station as { id: string; name: string; latitude: number; longitude: number } | null
 
       if (!location || !destinationStation) {
         return NextResponse.json(
@@ -131,7 +124,7 @@ export async function GET(request: Request) {
         .from('trips')
         .select(`
           *,
-          stations (*)
+          destination_station:stations!trips_destination_station_id_fkey(*)
         `)
         .eq('tanker_id', tankerId)
         .eq('status', 'in_progress')
@@ -145,7 +138,7 @@ export async function GET(request: Request) {
       .select(`
         *,
         tankers (*),
-        stations (*)
+        destination_station:stations!trips_destination_station_id_fkey(*)
       `)
       .eq('status', 'in_progress')
 
@@ -159,14 +152,7 @@ export async function GET(request: Request) {
           .limit(1)
           .maybeSingle()
 
-        // Handle stations - could be object or array, but should be single object for destination
-        const stations = Array.isArray(trip.stations)
-          ? trip.stations[0]
-          : (trip.stations as { id: string; name: string; latitude: number; longitude: number } | null | undefined)
-        
-        const destinationStation = trip.destination_station_id && stations
-          ? stations
-          : null
+        const destinationStation = trip.destination_station as { id: string; name: string; latitude: number; longitude: number } | null
 
         if (!location || !destinationStation) {
           return { ...trip, eta: null, distanceKm: null, etaMinutes: null }

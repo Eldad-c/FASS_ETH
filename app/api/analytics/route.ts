@@ -165,7 +165,7 @@ export async function GET(request: Request) {
           .select(`
             *,
             tankers (*),
-            stations (*)
+            destination_station:stations!trips_destination_station_id_fkey(*)
           `)
           .order('created_at', { ascending: false })
           .limit(100)
@@ -216,10 +216,8 @@ export async function GET(request: Request) {
                 : (t.tankers as { plate_number?: string } | null | undefined)
               const tankerPlate = tanker?.plate_number || 'Unknown'
               
-              // Handle stations - could be object or array, but should be single object
-              const station = Array.isArray(t.stations)
-                ? t.stations[0]
-                : (t.stations as { name?: string } | null | undefined)
+              // Handle destination_station - should be single object
+              const station = t.destination_station as { name?: string } | null | undefined
               const stationName = station?.name || 'Unknown'
               
               return {

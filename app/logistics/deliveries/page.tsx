@@ -33,13 +33,13 @@ interface Delivery {
   status: string
   trips: {
     tankers: {
-      registration_number: string
-    }
-  }
+      plate_number: string
+    } | null
+  } | null
   stations: {
     name: string
     address: string
-  }
+  } | null
 }
 
 export default function DeliveriesPage() {
@@ -54,12 +54,12 @@ export default function DeliveriesPage() {
       .from('deliveries')
       .select(`
         *,
-        trips!inner (
-          tankers (registration_number)
+        trips (
+          tankers (plate_number)
         ),
         stations (name, address)
       `)
-      .order('delivered_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(50)
 
     setDeliveries((data as Delivery[]) || [])
@@ -197,7 +197,7 @@ export default function DeliveriesPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Truck className="h-4 w-4 text-muted-foreground" />
-                        {delivery.trips?.tankers?.registration_number || 'N/A'}
+                        {delivery.trips?.tankers?.plate_number || 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell className="capitalize">{delivery.fuel_type}</TableCell>

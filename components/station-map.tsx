@@ -33,11 +33,11 @@ const queueLabels: Record<QueueLevel, string> = {
 }
 
 const queueColors: Record<QueueLevel, string> = {
-  none: 'text-green-600',
-  short: 'text-green-600',
-  medium: 'text-yellow-600',
-  long: 'text-red-600',
-  very_long: 'text-red-600',
+  none: 'text-green-600 dark:text-green-400',
+  short: 'text-green-600 dark:text-green-400',
+  medium: 'text-yellow-600 dark:text-yellow-400',
+  long: 'text-red-600 dark:text-red-400',
+  very_long: 'text-red-600 dark:text-red-400',
 }
 
 function getOverallStatus(station: StationWithFuelStatus): AvailabilityStatus {
