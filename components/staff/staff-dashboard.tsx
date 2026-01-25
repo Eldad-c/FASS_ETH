@@ -66,14 +66,16 @@ const queueLabels: Record<QueueLevel, string> = {
   none: 'No Queue',
   short: 'Short (< 5 min)',
   medium: 'Medium (5-15 min)',
-  long: 'Long (> 15 min)',
+  long: 'Long (15-30 min)',
+  very_long: 'Very Long (30+ min)',
 }
 
 const queueColors: Record<QueueLevel, string> = {
   none: 'text-green-600',
   short: 'text-green-600',
   medium: 'text-yellow-600',
-  long: 'text-red-600',
+  long: 'text-orange-600',
+  very_long: 'text-red-600',
 }
 
 export function StaffDashboard({ profile, station, pendingReports: initialReports }: StaffDashboardProps) {
@@ -370,11 +372,11 @@ export function StaffDashboard({ profile, station, pendingReports: initialReport
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {report.queue_level && (
+                      {(report.reported_queue_level || report.queue_level) && (
                         <div className="flex items-center gap-2 text-sm">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className={queueColors[report.queue_level]}>
-                            {queueLabels[report.queue_level]}
+                          <span className={queueColors[report.reported_queue_level || report.queue_level || 'none']}>
+                            {queueLabels[report.reported_queue_level || report.queue_level || 'none']}
                           </span>
                         </div>
                       )}

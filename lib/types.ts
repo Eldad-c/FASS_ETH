@@ -4,7 +4,7 @@ export type UserRole = 'public' | 'staff' | 'admin' | 'driver' | 'logistics'
 // Fuel types and availability status
 export type FuelType = 'petrol' | 'diesel' | 'premium'
 export type AvailabilityStatus = 'available' | 'low' | 'out_of_stock'
-export type QueueLevel = 'none' | 'short' | 'medium' | 'long'
+export type QueueLevel = 'none' | 'short' | 'medium' | 'long' | 'very_long'
 export type ReportStatus = 'pending' | 'verified' | 'rejected'
 
 // Trip and delivery status
@@ -66,7 +66,9 @@ export interface UserReport {
   user_id: string | null
   fuel_type: FuelType
   reported_status: AvailabilityStatus
-  queue_level?: QueueLevel | null
+  reported_queue_level?: QueueLevel | null
+  queue_level?: QueueLevel | null  // legacy alias
+  estimated_wait_time?: number | null
   comment: string | null
   status: ReportStatus
   created_at: string

@@ -12,6 +12,9 @@ import {
   FileText,
   Bell,
   ClipboardList,
+  BarChart3,
+  Truck,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -25,11 +28,14 @@ interface AdminSidebarProps {
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/stations', label: 'Stations', icon: Building2 },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/reports', label: 'Reports', icon: FileText },
   { href: '/admin/notifications', label: 'Notifications', icon: Bell },
   { href: '/admin/audit-logs', label: 'Audit Logs', icon: ClipboardList },
+  { href: '/logistics', label: 'Logistics Hub', icon: Truck },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
 export function AdminSidebar({ profile }: AdminSidebarProps) {
@@ -57,8 +63,8 @@ export function AdminSidebar({ profile }: AdminSidebarProps) {
             <Fuel className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
           <div>
-            <span className="text-sm font-bold block">TotalEnergies</span>
-            <span className="text-xs text-sidebar-foreground/70">Admin Panel</span>
+            <span className="text-sm font-bold block">TotalEnergiesEthiopia</span>
+            <span className="text-xs text-sidebar-foreground/70">Admin Console</span>
           </div>
         </Link>
       </div>

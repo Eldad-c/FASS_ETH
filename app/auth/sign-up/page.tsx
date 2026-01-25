@@ -71,8 +71,8 @@ export default function Page() {
                 <Fuel className="h-6 w-6 text-primary-foreground" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold">TotalEnergies</span>
-                <span className="text-xs text-muted-foreground">Fuel Availability</span>
+                <span className="text-sm font-bold">TotalEnergiesEthiopia</span>
+                <span className="text-xs text-muted-foreground">Fuel Availability System</span>
               </div>
             </Link>
           </div>
