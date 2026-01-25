@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Truck, Route, Package, MapPin, Clock, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react'
+import { Truck, Route, Package, MapPin, Clock, CheckCircle } from 'lucide-react'
 
 export default async function LogisticsDashboardPage() {
   const supabase = await createClient()
@@ -33,12 +33,7 @@ export default async function LogisticsDashboardPage() {
   const availableTankers = tankersList.filter(t => t.status === 'available').length
   const inTransitTankers = tankersList.filter(t => t.status === 'in_transit').length
   const activeTrips = tripsList.filter(t => t.status === 'in_progress').length
-  const scheduledTrips = tripsList.filter(t => t.status === 'scheduled').length
   const pendingDeliveries = deliveriesList.filter(d => d.status === 'pending').length
-  const completedToday = deliveriesList.filter(d => 
-    d.status === 'delivered' && 
-    new Date(d.delivered_at).toDateString() === new Date().toDateString()
-  ).length
 
   const statusColors: Record<string, string> = {
     available: 'bg-green-500/15 text-green-700 border-green-500/30',

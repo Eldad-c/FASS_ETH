@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Truck, Plus, MapPin, User, Fuel, Settings } from 'lucide-react'
+import { Truck, Plus, MapPin, User, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Tanker, Profile, TankerStatus } from '@/lib/types'
 

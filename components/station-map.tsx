@@ -29,6 +29,7 @@ const queueLabels: Record<QueueLevel, string> = {
   short: '< 5 min',
   medium: '5-15 min',
   long: '> 15 min',
+  very_long: '> 30 min',
 }
 
 const queueColors: Record<QueueLevel, string> = {
@@ -36,6 +37,7 @@ const queueColors: Record<QueueLevel, string> = {
   short: 'text-green-600',
   medium: 'text-yellow-600',
   long: 'text-red-600',
+  very_long: 'text-red-600',
 }
 
 function getOverallStatus(station: StationWithFuelStatus): AvailabilityStatus {
@@ -54,7 +56,7 @@ function getAverageQueueLevel(station: StationWithFuelStatus): QueueLevel {
   
   if (queueLevels.length === 0) return 'none'
   
-  const queueOrder: QueueLevel[] = ['none', 'short', 'medium', 'long']
+  const queueOrder: QueueLevel[] = ['none', 'short', 'medium', 'long', 'very_long']
   const avgIndex = Math.round(
     queueLevels.reduce((acc, q) => acc + queueOrder.indexOf(q || 'none'), 0) / queueLevels.length
   )

@@ -81,8 +81,13 @@ export async function GET(request: Request) {
         .limit(1)
         .maybeSingle()
 
-      const destinationStation = trip.destination_station_id
-        ? (trip.stations as { id: string; name: string; latitude: number; longitude: number } | null)
+      // Handle stations - could be object or array, but should be single object for destination
+      const stations = Array.isArray(trip.stations)
+        ? trip.stations[0]
+        : (trip.stations as { id: string; name: string; latitude: number; longitude: number } | null | undefined)
+      
+      const destinationStation = trip.destination_station_id && stations
+        ? stations
         : null
 
       if (!location || !destinationStation) {
@@ -154,10 +159,13 @@ export async function GET(request: Request) {
           .limit(1)
           .maybeSingle()
 
-        const destinationStation = trip.destination_station_id
-          ? (trip.stations as
-              | { id: string; name: string; latitude: number; longitude: number }
-              | null)
+        // Handle stations - could be object or array, but should be single object for destination
+        const stations = Array.isArray(trip.stations)
+          ? trip.stations[0]
+          : (trip.stations as { id: string; name: string; latitude: number; longitude: number } | null | undefined)
+        
+        const destinationStation = trip.destination_station_id && stations
+          ? stations
           : null
 
         if (!location || !destinationStation) {

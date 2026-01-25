@@ -13,13 +13,12 @@ import {
   CheckCircle,
   Truck,
   Play,
-  Square,
   LogOut,
   RefreshCw,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import type { Trip, Tanker, Profile, Station, TripStatus } from '@/lib/types'
+import type { Trip, Tanker, Profile, Station } from '@/lib/types'
 
 interface TripWithDetails extends Trip {
   destination_station?: Station
@@ -38,6 +37,7 @@ export default function DriverPage() {
     // Update location every 30 seconds
     const locationInterval = setInterval(updateLocation, 30000)
     return () => clearInterval(locationInterval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchData = async () => {

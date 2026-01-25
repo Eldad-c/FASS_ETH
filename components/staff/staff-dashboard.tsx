@@ -106,7 +106,7 @@ export function StaffDashboard({ profile, station, pendingReports: initialReport
     const currentFuel = fuelStatuses.find(f => f.id === fuelStatusId)
     if (!currentFuel) return
 
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, string | number | null> = {
       last_updated_by: profile.id,
       updated_at: new Date().toISOString(),
     }

@@ -53,18 +53,21 @@ export function Header() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle()
-          .then(({ data, error }) => {
-            if (error) console.error('Failed to load profile:', error)
-            setProfile(data)
-          })
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle()
+          if (error) console.error('Failed to load profile:', error)
+          setProfile(data)
+        } catch (error) {
+          console.error('Failed to load profile:', error)
+          setProfile(null)
+        }
       } else {
         setProfile(null)
       }

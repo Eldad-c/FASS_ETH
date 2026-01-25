@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -34,7 +33,6 @@ export function NotificationsManager({
   notifications: initialNotifications,
   stations,
 }: NotificationsManagerProps) {
-  const router = useRouter()
   const [notifications, setNotifications] = useState(initialNotifications)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)

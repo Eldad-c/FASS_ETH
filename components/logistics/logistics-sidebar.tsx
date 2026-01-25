@@ -11,7 +11,6 @@ import {
   MapPin,
   Package,
   Bell,
-  Settings,
   LogOut,
   ChevronLeft,
 } from 'lucide-react'

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, Truck, Navigation, Clock, Fuel } from 'lucide-react'
+import { MapPin, Truck, Navigation, Fuel } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Tanker, Trip, TankerStatus } from '@/lib/types'
 

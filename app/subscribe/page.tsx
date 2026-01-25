@@ -21,7 +21,7 @@ export default function SubscribePage() {
   const [notifyDelivery, setNotifyDelivery] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -89,8 +89,9 @@ export default function SubscribePage() {
         .eq('is_active', true)
       
       setSubscriptions(subsData || [])
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Failed to subscribe' })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to subscribe'
+      setMessage({ type: 'error', text: errorMessage })
     } finally {
       setIsLoading(false)
     }

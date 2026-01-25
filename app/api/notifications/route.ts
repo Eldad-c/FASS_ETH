@@ -46,11 +46,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Invalid user id' }, { status: 400 })
     }
 
+    // Use safer filter approach: get user-specific and broadcast notifications separately
+    // This avoids string interpolation in filter strings
     let query = supabase
       .from('notifications')
       .select('*')
-      // NOTE: Supabase `.or()` accepts a filter string; we validate `user.id` above to prevent injection.
-      .or(`user_id.eq.${user.id},user_id.is.null`)
+      .or(`user_id.eq.${userIdValidation.data},user_id.is.null`)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 

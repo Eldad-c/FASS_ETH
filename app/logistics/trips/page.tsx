@@ -86,7 +86,7 @@ export default function TripsPage() {
   const updateTripStatus = async (tripId: string, status: TripStatus) => {
     const supabase = createClient()
 
-    const updates: Record<string, any> = { status }
+    const updates: Record<string, string> = { status }
     if (status === 'in_progress') {
       updates.actual_departure = new Date().toISOString()
     } else if (status === 'completed') {

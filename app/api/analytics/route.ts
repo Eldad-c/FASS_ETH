@@ -209,14 +209,28 @@ export async function GET(request: Request) {
             tripsByStatus,
             totalTrips: allTrips?.length || 0,
             averageDeliveryTimeMinutes: avgDeliveryTime,
-            recentTrips: allTrips?.slice(0, 10).map((t) => ({
-              id: t.id,
-              tanker: (t.tankers as { plate_number?: string })?.plate_number || 'Unknown',
-              station: (t.stations as { name?: string })?.name || 'Unknown',
-              status: t.status,
-              fuelType: t.fuel_type,
-              quantity: t.quantity_liters,
-            })),
+            recentTrips: allTrips?.slice(0, 10).map((t) => {
+              // Handle tankers - could be object or array, but should be single object
+              const tanker = Array.isArray(t.tankers) 
+                ? t.tankers[0] 
+                : (t.tankers as { plate_number?: string } | null | undefined)
+              const tankerPlate = tanker?.plate_number || 'Unknown'
+              
+              // Handle stations - could be object or array, but should be single object
+              const station = Array.isArray(t.stations)
+                ? t.stations[0]
+                : (t.stations as { name?: string } | null | undefined)
+              const stationName = station?.name || 'Unknown'
+              
+              return {
+                id: t.id,
+                tanker: tankerPlate,
+                station: stationName,
+                status: t.status,
+                fuelType: t.fuel_type,
+                quantity: t.quantity_liters,
+              }
+            }),
           },
         })
       }

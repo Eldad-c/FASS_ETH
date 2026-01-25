@@ -18,7 +18,6 @@ import {
   MapPin, 
   Clock, 
   CheckCircle, 
-  XCircle,
   RefreshCw,
   Fuel
 } from 'lucide-react'
