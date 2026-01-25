@@ -17,8 +17,6 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Fuel } from 'lucide-react'
 
-const supabase = createClient()
-
 export default function Page() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,6 +26,7 @@ export default function Page() {
 
   useEffect(() => {
     const checkUser = async () => {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: profile } = await supabase
@@ -40,6 +39,10 @@ export default function Page() {
           router.push('/admin')
         } else if (profile?.role === 'staff') {
           router.push('/staff')
+        } else if (profile?.role === 'logistics') {
+          router.push('/logistics')
+        } else if (profile?.role === 'driver') {
+          router.push('/driver')
         } else {
           router.push('/')
         }
@@ -73,6 +76,10 @@ export default function Page() {
           router.push('/admin')
         } else if (profile?.role === 'staff') {
           router.push('/staff')
+        } else if (profile?.role === 'logistics') {
+          router.push('/logistics')
+        } else if (profile?.role === 'driver') {
+          router.push('/driver')
         } else {
           router.push('/')
         }
@@ -94,8 +101,8 @@ export default function Page() {
                 <Fuel className="h-6 w-6 text-primary-foreground" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold">TotalEnergies</span>
-                <span className="text-xs text-muted-foreground">Fuel Availability</span>
+                <span className="text-sm font-bold">TotalEnergiesEthiopia</span>
+                <span className="text-xs text-muted-foreground">Fuel Availability System</span>
               </div>
             </Link>
           </div>
