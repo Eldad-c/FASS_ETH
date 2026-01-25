@@ -120,14 +120,14 @@ export function NotificationsManager({
                   <div className="space-y-2">
                     <Label htmlFor="station">Station (Optional)</Label>
                     <Select
-                      value={formData.station_id}
-                      onValueChange={(v) => setFormData({ ...formData, station_id: v })}
+                      value={formData.station_id || "all_stations"}
+                      onValueChange={(v) => setFormData({ ...formData, station_id: v === "all_stations" ? '' : v })}
                     >
                       <SelectTrigger id="station">
                         <SelectValue placeholder="All stations" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Stations</SelectItem>
+                        <SelectItem value="all_stations">All Stations</SelectItem>
                         {stations.map((station) => (
                           <SelectItem key={station.id} value={station.id}>
                             {station.name}

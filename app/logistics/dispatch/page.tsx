@@ -41,7 +41,7 @@ interface Station {
 
 interface Tanker {
   id: string
-  registration_number: string
+  plate_number: string
   capacity_liters: number
   status: string
   driver_id: string
@@ -126,7 +126,7 @@ export default function DispatchPage() {
       // Update tanker status
       await supabase
         .from('tankers')
-        .update({ status: 'on_trip' })
+        .update({ status: 'in_transit' })
         .eq('id', selectedTanker)
 
       // Create notification
@@ -169,7 +169,7 @@ export default function DispatchPage() {
 
     await supabase
       .from('tankers')
-      .update({ status: 'on_trip' })
+      .update({ status: 'in_transit' })
       .eq('id', availableTanker.id)
 
     fetchData()
@@ -236,7 +236,7 @@ export default function DispatchPage() {
                   <SelectContent>
                     {tankers.map(tanker => (
                       <SelectItem key={tanker.id} value={tanker.id}>
-                        {tanker.registration_number} ({tanker.capacity_liters}L)
+                        {tanker.plate_number} ({tanker.capacity_liters}L)
                       </SelectItem>
                     ))}
                   </SelectContent>
