@@ -9,8 +9,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'TotalEnergies Fuel Availability System',
-  description: 'Real-time fuel availability tracking for TotalEnergies stations in Addis Ababa, Ethiopia',
+  title: 'TotalEnergiesEthiopia - Fuel Availability System',
+  description: 'Real-time fuel availability tracking, queue estimation, and delivery management for TotalEnergiesEthiopia stations in Addis Ababa',
   generator: 'v0.app',
   icons: {
     icon: [
