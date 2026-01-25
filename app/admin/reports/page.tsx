@@ -5,11 +5,12 @@ import { validatePagination } from '@/lib/pagination'
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams?: { page?: string; limit?: string }
+  searchParams: Promise<{ page?: string; limit?: string }>
 }) {
   const supabase = await createClient()
+  const resolvedSearchParams = await searchParams
 
-  const { page, limit } = validatePagination(searchParams?.page, searchParams?.limit)
+  const { page, limit } = validatePagination(resolvedSearchParams?.page, resolvedSearchParams?.limit)
   const offset = (page - 1) * limit
 
   const { data: reports, count: totalReports } = await supabase

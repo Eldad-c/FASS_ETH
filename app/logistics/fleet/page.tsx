@@ -156,14 +156,14 @@ export default function FleetPage() {
               <div className="space-y-2">
                 <Label htmlFor="driver">Assigned Driver</Label>
                 <Select
-                  value={formData.driver_id}
-                  onValueChange={(value) => setFormData({ ...formData, driver_id: value })}
+                  value={formData.driver_id || "unassigned"}
+                  onValueChange={(value) => setFormData({ ...formData, driver_id: value === "unassigned" ? '' : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a driver" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No driver assigned</SelectItem>
+                    <SelectItem value="unassigned">No driver assigned</SelectItem>
                     {drivers.map((driver) => (
                       <SelectItem key={driver.id} value={driver.id}>
                         {driver.full_name || driver.email || 'Unknown Driver'}

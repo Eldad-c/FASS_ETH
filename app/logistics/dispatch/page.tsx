@@ -115,7 +115,7 @@ export default function DispatchPage() {
     // Create a new trip
     const { error } = await supabase.from('trips').insert({
       tanker_id: selectedTanker,
-      station_id: selectedStation,
+      destination_station_id: selectedStation,
       fuel_type: selectedFuelType,
       quantity_liters: parseInt(quantity),
       status: 'scheduled',
@@ -160,7 +160,7 @@ export default function DispatchPage() {
 
     await supabase.from('trips').insert({
       tanker_id: availableTanker.id,
-      station_id: request.station_id,
+      destination_station_id: request.station_id,
       fuel_type: request.fuel_type,
       quantity_liters: availableTanker.capacity_liters,
       status: 'scheduled',
