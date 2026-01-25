@@ -2,6 +2,7 @@ import React from "react"
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { isAdmin } from '@/lib/role-helpers'
 
 export default async function AdminLayout({
   children,
@@ -18,13 +19,17 @@ export default async function AdminLayout({
     redirect('/auth/login')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (!profile || profile.role !== 'admin') {
+  if (profileError || !profile) {
+    redirect('/auth/login')
+  }
+
+  if (!isAdmin(profile.role)) {
     redirect('/')
   }
 

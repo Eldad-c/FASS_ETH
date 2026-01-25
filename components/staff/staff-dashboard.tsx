@@ -177,11 +177,11 @@ export function StaffDashboard({ profile, station, pendingReports: initialReport
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/">
-                <Button variant="ghost" size="icon" aria-label="Home">
+              <Button asChild variant="ghost" size="icon" aria-label="Home">
+                <Link href="/">
                   <Home className="h-4 w-4" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               <Button variant="ghost" size="icon" onClick={refreshData} aria-label="Refresh">
                 <RefreshCw className="h-4 w-4" />
               </Button>

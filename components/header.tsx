@@ -17,6 +17,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/types'
+import { hasRole, normalizeRole } from '@/lib/role-helpers'
 
 export function Header() {
   const pathname = usePathname()
@@ -35,11 +36,15 @@ export function Header() {
       setUser(user)
 
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()
+
+        if (error) {
+          console.error('Failed to load profile:', error)
+        }
         setProfile(profile)
       }
     }
@@ -55,8 +60,11 @@ export function Header() {
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
-          .single()
-          .then(({ data }) => setProfile(data))
+          .maybeSingle()
+          .then(({ data, error }) => {
+            if (error) console.error('Failed to load profile:', error)
+            setProfile(data)
+          })
       } else {
         setProfile(null)
       }
@@ -73,7 +81,7 @@ export function Header() {
 
   const getDashboardLink = () => {
     if (!profile) return '/auth/login'
-    switch (profile.role) {
+    switch (normalizeRole(profile.role)) {
       case 'admin':
         return '/admin'
       case 'staff':
@@ -89,7 +97,7 @@ export function Header() {
 
   const getRoleLabel = () => {
     if (!profile) return ''
-    switch (profile.role) {
+    switch (normalizeRole(profile.role)) {
       case 'admin':
         return 'Administrator'
       case 'staff':
@@ -124,34 +132,18 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
-            <Link href="/">
-              <Button
-                variant={isActive('/') ? 'secondary' : 'ghost'}
-                size="sm"
-                className="text-sm"
-              >
+            <Button asChild variant={isActive('/') ? 'secondary' : 'ghost'} size="sm" className="text-sm">
+              <Link href="/">
                 <MapPin className="h-4 w-4 mr-1" />
                 Find Fuel
-              </Button>
-            </Link>
-            <Link href="/report">
-              <Button
-                variant={isActive('/report') ? 'secondary' : 'ghost'}
-                size="sm"
-                className="text-sm"
-              >
-                Report Status
-              </Button>
-            </Link>
-            <Link href="/subscribe">
-              <Button
-                variant={isActive('/subscribe') ? 'secondary' : 'ghost'}
-                size="sm"
-                className="text-sm"
-              >
-                Alerts
-              </Button>
-            </Link>
+              </Link>
+            </Button>
+            <Button asChild variant={isActive('/report') ? 'secondary' : 'ghost'} size="sm" className="text-sm">
+              <Link href="/report">Report Status</Link>
+            </Button>
+            <Button asChild variant={isActive('/subscribe') ? 'secondary' : 'ghost'} size="sm" className="text-sm">
+              <Link href="/subscribe">Alerts</Link>
+            </Button>
             {user && profile ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -174,7 +166,7 @@ export function Header() {
                       My Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  {(profile.role === 'admin' || profile.role === 'logistics') && (
+                  {hasRole(profile.role, ['admin', 'logistics']) && (
                     <DropdownMenuItem asChild>
                       <Link href="/logistics" className="cursor-pointer">
                         <Truck className="h-4 w-4 mr-2" />
@@ -182,7 +174,7 @@ export function Header() {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {profile.role === 'admin' && (
+                  {hasRole(profile.role, ['admin']) && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin/settings" className="cursor-pointer">
                         <Settings className="h-4 w-4 mr-2" />
@@ -198,12 +190,12 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link href="/auth/login">
-                <Button variant="default" size="sm" className="ml-2">
+              <Button asChild variant="default" size="sm" className="ml-2">
+                <Link href="/auth/login">
                   <LogIn className="h-4 w-4 mr-2" />
                   Sign In
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             )}
           </nav>
 
@@ -225,42 +217,38 @@ export function Header() {
         {mobileMenuOpen && (
           <nav className="md:hidden py-4 border-t border-border">
             <div className="flex flex-col gap-2">
-              <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-                <Button
-                  variant={isActive('/') ? 'secondary' : 'ghost'}
-                  className="w-full justify-start"
-                >
+              <Button
+                asChild
+                variant={isActive('/') ? 'secondary' : 'ghost'}
+                className="w-full justify-start"
+              >
+                <Link href="/" onClick={() => setMobileMenuOpen(false)}>
                   Find Fuel
-                </Button>
-              </Link>
-              <Link href="/report" onClick={() => setMobileMenuOpen(false)}>
-                <Button
-                  variant={isActive('/report') ? 'secondary' : 'ghost'}
-                  className="w-full justify-start"
-                >
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant={isActive('/report') ? 'secondary' : 'ghost'}
+                className="w-full justify-start"
+              >
+                <Link href="/report" onClick={() => setMobileMenuOpen(false)}>
                   Report Status
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               {user ? (
-                <Link
-                  href={getDashboardLink()}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button variant="default" className="w-full justify-start">
+                <Button asChild variant="default" className="w-full justify-start">
+                  <Link href={getDashboardLink()} onClick={() => setMobileMenuOpen(false)}>
                     <User className="h-4 w-4 mr-2" />
                     Dashboard
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               ) : (
-                <Link
-                  href="/auth/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button variant="default" className="w-full justify-start">
+                <Button asChild variant="default" className="w-full justify-start">
+                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
                     <LogIn className="h-4 w-4 mr-2" />
                     Sign In
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               )}
             </div>
           </nav>

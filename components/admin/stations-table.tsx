@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,9 +26,13 @@ import { Switch } from '@/components/ui/switch'
 import { createClient } from '@/lib/supabase/client'
 import { Plus, Search, Edit, Loader2 } from 'lucide-react'
 import type { StationWithFuelStatus, AvailabilityStatus } from '@/lib/types'
+import { PaginationControls } from '@/components/pagination-controls'
 
 interface StationsTableProps {
   stations: StationWithFuelStatus[]
+  page: number
+  limit: number
+  total: number
 }
 
 const statusColors: Record<AvailabilityStatus, string> = {
@@ -37,7 +41,12 @@ const statusColors: Record<AvailabilityStatus, string> = {
   out_of_stock: 'bg-red-500/15 text-red-700 border-red-500/30',
 }
 
-export function StationsTable({ stations: initialStations }: StationsTableProps) {
+export function StationsTable({
+  stations: initialStations,
+  page,
+  limit,
+  total,
+}: StationsTableProps) {
   const router = useRouter()
   const [stations, setStations] = useState(initialStations)
   const [search, setSearch] = useState('')
@@ -53,11 +62,19 @@ export function StationsTable({ stations: initialStations }: StationsTableProps)
     operating_hours: '',
   })
 
-  const filteredStations = stations.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.address.toLowerCase().includes(search.toLowerCase())
-  )
+  useEffect(() => {
+    setStations(initialStations)
+  }, [initialStations])
+
+  const filteredStations = useMemo(() => {
+    const s = search.toLowerCase().trim()
+    if (!s) return stations
+    return stations.filter(
+      (st) =>
+        st.name.toLowerCase().includes(s) ||
+        st.address.toLowerCase().includes(s)
+    )
+  }, [stations, search])
 
   const handleToggleActive = async (station: StationWithFuelStatus) => {
     const supabase = createClient()
@@ -89,7 +106,7 @@ export function StationsTable({ stations: initialStations }: StationsTableProps)
         operating_hours: formData.operating_hours || null,
       })
       .select()
-      .single()
+      .maybeSingle()
 
     if (!error && data) {
       // Create fuel status entries for the new station
@@ -169,7 +186,7 @@ export function StationsTable({ stations: initialStations }: StationsTableProps)
     <Card>
       <CardHeader>
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <CardTitle>All Stations ({stations.length})</CardTitle>
+          <CardTitle>All Stations ({total})</CardTitle>
           <div className="flex gap-2">
             <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -264,7 +281,7 @@ export function StationsTable({ stations: initialStations }: StationsTableProps)
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <Table>
+          <Table aria-label="Stations">
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -275,110 +292,140 @@ export function StationsTable({ stations: initialStations }: StationsTableProps)
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStations.map((station) => (
-                <TableRow key={station.id}>
-                  <TableCell className="font-medium">{station.name}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">{station.address}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1 flex-wrap">
-                      {station.fuel_status.map((fuel) => (
-                        <Badge
-                          key={fuel.id}
-                          variant="outline"
-                          className={`text-xs ${statusColors[fuel.status]}`}
-                        >
-                          {fuel.fuel_type.charAt(0).toUpperCase()}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={station.is_active}
-                      onCheckedChange={() => handleToggleActive(station)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Dialog
-                      open={editingStation?.id === station.id}
-                      onOpenChange={(open) => !open && setEditingStation(null)}
-                    >
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(station)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Station</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-name">Station Name</Label>
-                            <Input
-                              id="edit-name"
-                              value={formData.name}
-                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-address">Address</Label>
-                            <Input
-                              id="edit-address"
-                              value={formData.address}
-                              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-latitude">Latitude</Label>
-                              <Input
-                                id="edit-latitude"
-                                type="number"
-                                step="any"
-                                value={formData.latitude}
-                                onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-longitude">Longitude</Label>
-                              <Input
-                                id="edit-longitude"
-                                type="number"
-                                step="any"
-                                value={formData.longitude}
-                                onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-phone">Phone Number</Label>
-                            <Input
-                              id="edit-phone"
-                              value={formData.phone}
-                              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-hours">Operating Hours</Label>
-                            <Input
-                              id="edit-hours"
-                              value={formData.operating_hours}
-                              onChange={(e) => setFormData({ ...formData, operating_hours: e.target.value })}
-                            />
-                          </div>
-                          <Button onClick={handleEditStation} disabled={loading} className="w-full">
-                            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                            Save Changes
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+              {filteredStations.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                    No stations found.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredStations.map((station) => (
+                  <TableRow key={station.id}>
+                    <TableCell className="font-medium">{station.name}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">{station.address}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        {station.fuel_status.map((fuel) => (
+                          <Badge
+                            key={fuel.id}
+                            variant="outline"
+                            className={`text-xs ${statusColors[fuel.status]}`}
+                          >
+                            {fuel.fuel_type.charAt(0).toUpperCase()}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={station.is_active}
+                        onCheckedChange={() => handleToggleActive(station)}
+                        aria-label={`Toggle active for ${station.name}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Dialog
+                        open={editingStation?.id === station.id}
+                        onOpenChange={(open) => !open && setEditingStation(null)}
+                      >
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(station)}
+                            aria-label={`Edit station ${station.name}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit Station</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="edit-name">Station Name</Label>
+                              <Input
+                                id="edit-name"
+                                value={formData.name}
+                                onChange={(e) =>
+                                  setFormData({ ...formData, name: e.target.value })
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="edit-address">Address</Label>
+                              <Input
+                                id="edit-address"
+                                value={formData.address}
+                                onChange={(e) =>
+                                  setFormData({ ...formData, address: e.target.value })
+                                }
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-latitude">Latitude</Label>
+                                <Input
+                                  id="edit-latitude"
+                                  type="number"
+                                  step="any"
+                                  value={formData.latitude}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, latitude: e.target.value })
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-longitude">Longitude</Label>
+                                <Input
+                                  id="edit-longitude"
+                                  type="number"
+                                  step="any"
+                                  value={formData.longitude}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, longitude: e.target.value })
+                                  }
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="edit-phone">Phone Number</Label>
+                              <Input
+                                id="edit-phone"
+                                value={formData.phone}
+                                onChange={(e) =>
+                                  setFormData({ ...formData, phone: e.target.value })
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="edit-hours">Operating Hours</Label>
+                              <Input
+                                id="edit-hours"
+                                value={formData.operating_hours}
+                                onChange={(e) =>
+                                  setFormData({ ...formData, operating_hours: e.target.value })
+                                }
+                              />
+                            </div>
+                            <Button onClick={handleEditStation} disabled={loading} className="w-full">
+                              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                              Save Changes
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
+        </div>
+
+        <div className="mt-4">
+          <PaginationControls page={page} limit={limit} total={total} />
         </div>
       </CardContent>
     </Card>

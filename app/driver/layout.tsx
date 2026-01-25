@@ -1,6 +1,7 @@
 import React from "react"
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { isDriver } from '@/lib/role-helpers'
 
 export default async function DriverLayout({
   children,
@@ -14,13 +15,17 @@ export default async function DriverLayout({
     redirect('/auth/login')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (!profile || profile.role !== 'driver') {
+  if (profileError || !profile) {
+    redirect('/auth/login')
+  }
+
+  if (!isDriver(profile.role)) {
     redirect('/')
   }
 

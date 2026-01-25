@@ -29,19 +29,25 @@ export default function Page() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()
         
-        if (profile?.role === 'admin') {
+        if (profileError) {
+          setError(profileError.message)
+          return
+        }
+
+        const role = profile?.role?.toLowerCase()
+        if (role === 'admin') {
           router.push('/admin')
-        } else if (profile?.role === 'staff') {
+        } else if (role === 'staff') {
           router.push('/staff')
-        } else if (profile?.role === 'logistics') {
+        } else if (role === 'logistics') {
           router.push('/logistics')
-        } else if (profile?.role === 'driver') {
+        } else if (role === 'driver') {
           router.push('/driver')
         } else {
           router.push('/')
@@ -66,19 +72,24 @@ export default function Page() {
       
       // Redirect based on role
       if (data.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
-          .single()
+          .maybeSingle()
         
-        if (profile?.role === 'admin') {
+        if (profileError) {
+          throw profileError
+        }
+
+        const role = profile?.role?.toLowerCase()
+        if (role === 'admin') {
           router.push('/admin')
-        } else if (profile?.role === 'staff') {
+        } else if (role === 'staff') {
           router.push('/staff')
-        } else if (profile?.role === 'logistics') {
+        } else if (role === 'logistics') {
           router.push('/logistics')
-        } else if (profile?.role === 'driver') {
+        } else if (role === 'driver') {
           router.push('/driver')
         } else {
           router.push('/')

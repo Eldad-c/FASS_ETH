@@ -19,17 +19,10 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import type { Trip, Tanker, Profile, TripStatus } from '@/lib/types'
+import type { Trip, Tanker, Profile, Station, TripStatus } from '@/lib/types'
 
 interface TripWithDetails extends Trip {
-  destination_station?: {
-    id: string
-    name: string
-    address: string
-    latitude: number
-    longitude: number
-    phone: string | null
-  }
+  destination_station?: Station
 }
 
 export default function DriverPage() {
@@ -54,31 +47,43 @@ export default function DriverPage() {
     if (!user) return
 
     // Get profile
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
+
+    if (profileError) {
+      console.error('Failed to load driver profile:', profileError)
+    }
 
     setProfile(profileData)
 
     // Get assigned tanker
-    const { data: tankerData } = await supabase
+    const { data: tankerData, error: tankerError } = await supabase
       .from('tankers')
       .select('*')
       .eq('driver_id', user.id)
-      .single()
+      .maybeSingle()
+
+    if (tankerError) {
+      console.error('Failed to load assigned tanker:', tankerError)
+    }
 
     setTanker(tankerData)
 
     if (tankerData) {
       // Get current active trip
-      const { data: currentTripData } = await supabase
+      const { data: currentTripData, error: currentTripError } = await supabase
         .from('trips')
         .select('*, destination_station:stations!trips_destination_station_id_fkey(*)')
         .eq('tanker_id', tankerData.id)
         .eq('status', 'in_progress')
-        .single()
+        .maybeSingle()
+
+      if (currentTripError) {
+        console.error('Failed to load current trip:', currentTripError)
+      }
 
       setCurrentTrip(currentTripData)
 

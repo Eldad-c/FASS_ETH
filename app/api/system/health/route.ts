@@ -1,5 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
+import { handleUnknownError } from '@/lib/api-helpers'
+import { logLevelSchema } from '@/lib/validations'
+import { z } from 'zod'
 import { NextResponse } from 'next/server'
+import { env } from '@/lib/env'
+
+const systemLogSchema = z.object({
+  level: logLevelSchema,
+  component: z.string().min(1).max(100),
+  message: z.string().min(1).max(1000),
+  metadata: z.record(z.unknown()).nullable().optional(),
+})
 
 export async function GET() {
   try {
@@ -23,16 +34,28 @@ export async function GET() {
       supabase.from('user_reports').select('*', { count: 'exact', head: true }),
     ])
 
-    // Log system health check
-    await supabase.from('system_logs').insert({
-      level: 'info',
+    // Log system health check (non-blocking)
+    const logData = {
+      level: 'INFO' as const,
       component: 'health_check',
       message: 'System health check performed',
       metadata: {
         db_latency_ms: dbLatency,
         timestamp: new Date().toISOString(),
       },
-    })
+    }
+
+    const logValidation = systemLogSchema.safeParse(logData)
+    if (logValidation.success) {
+      // Don't fail health check if logging fails (non-blocking)
+      void (async () => {
+        try {
+          await supabase.from('system_logs').insert(logValidation.data)
+        } catch (err: unknown) {
+          console.error('Failed to log health check:', err)
+        }
+      })()
+    }
 
     return NextResponse.json({
       status: dbError ? 'degraded' : 'healthy',
@@ -48,7 +71,7 @@ export async function GET() {
           status: 'healthy',
         },
         gebetaMaps: {
-          status: process.env.NEXT_PUBLIC_GEBETA_MAPS_API_KEY ? 'configured' : 'not_configured',
+          status: env.gebetaMapsApiKey ? 'configured' : 'not_configured',
         },
       },
       stats: {
@@ -59,14 +82,6 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error('Health check error:', error)
-    return NextResponse.json(
-      {
-        status: 'unhealthy',
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    )
+    return handleUnknownError(error)
   }
 }

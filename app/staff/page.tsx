@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { StaffDashboard } from '@/components/staff/staff-dashboard'
+import { isStaff } from '@/lib/role-helpers'
 
 export default async function StaffPage() {
   const supabase = await createClient()
@@ -13,13 +14,17 @@ export default async function StaffPage() {
     redirect('/auth/login')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*, stations(*)')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (!profile || profile.role !== 'staff') {
+  if (profileError || !profile) {
+    redirect('/auth/login')
+  }
+
+  if (!isStaff(profile.role)) {
     redirect('/')
   }
 
@@ -36,13 +41,24 @@ export default async function StaffPage() {
     )
   }
 
-  const { data: station } = await supabase
+  const { data: station, error: stationError } = await supabase
     .from('stations')
     .select('*, fuel_status(*)')
     .eq('id', profile.assigned_station_id)
-    .single()
+    .maybeSingle()
 
-  const { data: reports } = await supabase
+  if (stationError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Unable to Load Station</h1>
+          <p className="text-muted-foreground">{stationError.message}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const { data: reports, error: reportsError } = await supabase
     .from('user_reports')
     .select('*')
     .eq('station_id', profile.assigned_station_id)
@@ -54,7 +70,7 @@ export default async function StaffPage() {
     <StaffDashboard
       profile={profile}
       station={station}
-      pendingReports={reports || []}
+      pendingReports={reportsError ? [] : reports || []}
     />
   )
 }

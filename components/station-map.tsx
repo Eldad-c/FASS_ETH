@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { MapPin, Fuel, Navigation, Clock, Users } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import type { StationWithFuelStatus, AvailabilityStatus, QueueLevel } from '@/lib/types'
+import { env } from '@/lib/env'
 
 interface StationMapProps {
   stations: StationWithFuelStatus[]
@@ -109,7 +110,7 @@ export function StationMap({ stations }: StationMapProps) {
 
   // Open directions in Gebeta Maps
   const openDirections = (station: StationWithFuelStatus) => {
-    const apiKey = process.env.NEXT_PUBLIC_GEBETA_MAPS_API_KEY
+    const apiKey = env.gebetaMapsApiKey
     if (userLocation && apiKey) {
       window.open(
         `https://gebeta.app/directions?origin=${userLocation.lat},${userLocation.lng}&destination=${station.latitude},${station.longitude}`,

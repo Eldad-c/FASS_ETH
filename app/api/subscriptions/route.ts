@@ -1,4 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import { handleUnknownError, verifyAuth } from '@/lib/api-helpers'
+import { subscriptionSchema, uuidSchema } from '@/lib/validations'
+import { z } from 'zod'
 import { NextResponse } from 'next/server'
 
 // GET - Fetch user subscriptions
@@ -6,9 +9,9 @@ export async function GET() {
   try {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { user, error: authError } = await verifyAuth(supabase)
+    if (authError || !user) {
+      return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: subscriptions, error } = await supabase
@@ -27,8 +30,7 @@ export async function GET() {
 
     return NextResponse.json({ subscriptions: subscriptions || [] })
   } catch (error) {
-    console.error('Fetch subscriptions error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleUnknownError(error)
   }
 }
 
@@ -36,23 +38,41 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { stationId, fuelTypes, alertTypes, deliveryMethod } = body
+
+    const validationResult = subscriptionSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Validation error', details: validationResult.error.errors },
+        { status: 400 }
+      )
+    }
+
+    const { station_id, fuel_type, notify_on_available, notify_on_low, notify_on_delivery } =
+      validationResult.data
 
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { user, error: authError } = await verifyAuth(supabase)
+    if (authError || !user) {
+      return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Check if subscription already exists
-    const { data: existing } = await supabase
+    let existingQuery = supabase
       .from('subscriptions')
       .select('id')
       .eq('user_id', user.id)
-      .eq('station_id', stationId)
       .eq('is_active', true)
-      .single()
+
+    if (station_id) {
+      existingQuery = existingQuery.eq('station_id', station_id)
+    }
+
+    if (fuel_type) {
+      existingQuery = existingQuery.eq('fuel_type', fuel_type)
+    }
+
+    const { data: existing } = await existingQuery.maybeSingle()
 
     if (existing) {
       return NextResponse.json({ error: 'Subscription already exists for this station' }, { status: 409 })
@@ -62,10 +82,12 @@ export async function POST(request: Request) {
       .from('subscriptions')
       .insert({
         user_id: user.id,
-        station_id: stationId,
-        fuel_types: fuelTypes || ['petrol', 'diesel', 'premium'],
-        alert_types: alertTypes || ['availability', 'low_stock', 'delivery'],
-        delivery_method: deliveryMethod || 'in_app',
+        station_id: station_id ?? null,
+        fuel_type: fuel_type ?? null,
+        notify_on_available,
+        notify_on_low,
+        notify_on_delivery,
+        is_active: true,
       })
       .select(`
         *,
@@ -79,8 +101,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ subscription })
   } catch (error) {
-    console.error('Create subscription error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleUnknownError(error)
   }
 }
 
@@ -90,15 +111,20 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url)
     const subscriptionId = searchParams.get('id')
 
-    if (!subscriptionId) {
-      return NextResponse.json({ error: 'Subscription ID required' }, { status: 400 })
+    // Validate subscription ID
+    const validationResult = uuidSchema.safeParse(subscriptionId)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid subscription ID', details: validationResult.error.errors },
+        { status: 400 }
+      )
     }
 
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { user, error: authError } = await verifyAuth(supabase)
+    if (authError || !user) {
+      return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Soft delete - set is_active to false
@@ -114,8 +140,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Delete subscription error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleUnknownError(error)
   }
 }
 
@@ -123,23 +148,32 @@ export async function DELETE(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json()
-    const { subscriptionId, fuelTypes, alertTypes, deliveryMethod } = body
+    const updateSchema = z.object({
+      subscriptionId: uuidSchema,
+      station_id: uuidSchema.nullable().optional(),
+      fuel_type: z.enum(['petrol', 'diesel', 'premium']).nullable().optional(),
+      notify_on_available: z.boolean().optional(),
+      notify_on_low: z.boolean().optional(),
+      notify_on_delivery: z.boolean().optional(),
+      is_active: z.boolean().optional(),
+    })
 
-    if (!subscriptionId) {
-      return NextResponse.json({ error: 'Subscription ID required' }, { status: 400 })
+    const validationResult = updateSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Validation error', details: validationResult.error.errors },
+        { status: 400 }
+      )
     }
+
+    const { subscriptionId, ...updateData } = validationResult.data
 
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { user, error: authError } = await verifyAuth(supabase)
+    if (authError || !user) {
+      return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const updateData: Record<string, unknown> = {}
-    if (fuelTypes) updateData.fuel_types = fuelTypes
-    if (alertTypes) updateData.alert_types = alertTypes
-    if (deliveryMethod) updateData.delivery_method = deliveryMethod
 
     const { data: subscription, error } = await supabase
       .from('subscriptions')
@@ -148,7 +182,7 @@ export async function PATCH(request: Request) {
       .eq('user_id', user.id)
       .select(`
         *,
-        stations (id, name, address)
+        station:stations (id, name, address)
       `)
       .single()
 
@@ -156,9 +190,12 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    if (!subscription) {
+      return NextResponse.json({ error: 'Subscription not found' }, { status: 404 })
+    }
+
     return NextResponse.json({ subscription })
   } catch (error) {
-    console.error('Update subscription error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleUnknownError(error)
   }
 }

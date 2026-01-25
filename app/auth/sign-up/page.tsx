@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Fuel } from 'lucide-react'
+import { env } from '@/lib/env'
 
 export default function Page() {
   const [fullName, setFullName] = useState('')
@@ -45,7 +46,7 @@ export default function Page() {
         password,
         options: {
           emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+            env.devSupabaseRedirectUrl ||
             `${window.location.origin}/`,
           data: {
             full_name: fullName,

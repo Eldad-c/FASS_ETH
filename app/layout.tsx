@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Footer } from '@/components/footer'
+import { ErrorBoundary } from '@/components/error-boundary'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -39,9 +40,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased min-h-screen flex flex-col`}>
-        <div className="flex-1">{children}</div>
-        <Footer />
-        <Analytics />
+        <ErrorBoundary>
+          <div className="flex-1">{children}</div>
+          <Footer />
+          <Analytics />
+        </ErrorBoundary>
       </body>
     </html>
   )

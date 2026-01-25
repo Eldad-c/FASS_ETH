@@ -2,6 +2,7 @@ import React from "react"
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { LogisticsSidebar } from '@/components/logistics/logistics-sidebar'
+import { hasRole } from '@/lib/role-helpers'
 
 export default async function LogisticsLayout({
   children,
@@ -15,13 +16,17 @@ export default async function LogisticsLayout({
     redirect('/auth/login')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (!profile || !['admin', 'logistics'].includes(profile.role)) {
+  if (profileError || !profile) {
+    redirect('/auth/login')
+  }
+
+  if (!hasRole(profile.role, ['admin', 'logistics'])) {
     redirect('/')
   }
 

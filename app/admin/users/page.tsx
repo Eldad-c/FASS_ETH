@@ -1,13 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
 import { UsersTable } from '@/components/admin/users-table'
+import { validatePagination } from '@/lib/pagination'
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams?: { page?: string; limit?: string }
+}) {
   const supabase = await createClient()
 
-  const { data: users } = await supabase
+  const { page, limit } = validatePagination(searchParams?.page, searchParams?.limit)
+  const offset = (page - 1) * limit
+
+  const { data: users, count: totalUsers } = await supabase
     .from('profiles')
-    .select('*, stations(id, name)')
+    .select('*, stations(id, name)', { count: 'exact' })
     .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
 
   const { data: stations } = await supabase
     .from('stations')
@@ -21,7 +30,13 @@ export default async function UsersPage() {
         <h1 className="text-2xl font-bold">User Management</h1>
         <p className="text-muted-foreground">Manage user accounts and role assignments</p>
       </div>
-      <UsersTable users={users || []} stations={stations || []} />
+      <UsersTable
+        users={users || []}
+        stations={stations || []}
+        page={page}
+        limit={limit}
+        total={totalUsers || 0}
+      />
     </main>
   )
 }

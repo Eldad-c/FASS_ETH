@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import { handleUnknownError, verifyRole } from '@/lib/api-helpers'
+import { etaQuerySchema } from '@/lib/validations'
 import { NextResponse } from 'next/server'
 
 // Haversine formula to calculate distance between two coordinates
@@ -33,7 +35,26 @@ export async function GET(request: Request) {
     const tripId = searchParams.get('tripId')
     const tankerId = searchParams.get('tankerId')
 
+    // Validate query parameters
+    const validationResult = etaQuerySchema.safeParse({ tripId, tankerId })
+    if (!validationResult.success && (tripId || tankerId)) {
+      return NextResponse.json(
+        { error: 'Invalid query parameters', details: validationResult.error.errors },
+        { status: 400 }
+      )
+    }
+
     const supabase = await createClient()
+
+    // Verify user has logistics, admin, or driver role
+    const { hasAccess, error: roleError } = await verifyRole(supabase, [
+      'admin',
+      'logistics',
+      'driver',
+    ])
+    if (roleError || !hasAccess) {
+      return roleError || NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     // If specific trip requested
     if (tripId) {
@@ -56,19 +77,26 @@ export async function GET(request: Request) {
         .from('tanker_locations')
         .select('*')
         .eq('tanker_id', trip.tanker_id)
-        .order('timestamp', { ascending: false })
+        .order('recorded_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
-      if (!location || !trip.stations) {
-        return NextResponse.json({ eta: null, message: 'Location data unavailable' })
+      const destinationStation = trip.destination_station_id
+        ? (trip.stations as { id: string; name: string; latitude: number; longitude: number } | null)
+        : null
+
+      if (!location || !destinationStation) {
+        return NextResponse.json(
+          { eta: null, message: 'Location data unavailable' },
+          { status: 404 }
+        )
       }
 
       const distance = calculateDistance(
-        location.latitude,
-        location.longitude,
-        trip.stations.latitude,
-        trip.stations.longitude
+        Number(location.latitude),
+        Number(location.longitude),
+        Number(destinationStation.latitude),
+        Number(destinationStation.longitude)
       )
 
       const eta = calculateETA(distance)
@@ -76,15 +104,15 @@ export async function GET(request: Request) {
       return NextResponse.json({
         tripId: trip.id,
         tankerId: trip.tanker_id,
-        stationId: trip.station_id,
-        stationName: trip.stations.name,
+        stationId: trip.destination_station_id,
+        stationName: destinationStation.name,
         currentLocation: {
-          latitude: location.latitude,
-          longitude: location.longitude,
+          latitude: Number(location.latitude),
+          longitude: Number(location.longitude),
         },
         destination: {
-          latitude: trip.stations.latitude,
-          longitude: trip.stations.longitude,
+          latitude: Number(destinationStation.latitude),
+          longitude: Number(destinationStation.longitude),
         },
         distanceKm: Math.round(distance * 10) / 10,
         etaMinutes: eta,
@@ -122,26 +150,32 @@ export async function GET(request: Request) {
           .from('tanker_locations')
           .select('*')
           .eq('tanker_id', trip.tanker_id)
-          .order('timestamp', { ascending: false })
+          .order('recorded_at', { ascending: false })
           .limit(1)
-          .single()
+          .maybeSingle()
 
-        if (!location || !trip.stations) {
-          return { ...trip, eta: null }
+        const destinationStation = trip.destination_station_id
+          ? (trip.stations as
+              | { id: string; name: string; latitude: number; longitude: number }
+              | null)
+          : null
+
+        if (!location || !destinationStation) {
+          return { ...trip, eta: null, distanceKm: null, etaMinutes: null }
         }
 
         const distance = calculateDistance(
-          location.latitude,
-          location.longitude,
-          trip.stations.latitude,
-          trip.stations.longitude
+          Number(location.latitude),
+          Number(location.longitude),
+          Number(destinationStation.latitude),
+          Number(destinationStation.longitude)
         )
 
         return {
           ...trip,
           currentLocation: {
-            latitude: location.latitude,
-            longitude: location.longitude,
+            latitude: Number(location.latitude),
+            longitude: Number(location.longitude),
           },
           distanceKm: Math.round(distance * 10) / 10,
           etaMinutes: calculateETA(distance),
@@ -151,7 +185,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ trips: tripsWithETA })
   } catch (error) {
-    console.error('ETA calculation error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleUnknownError(error)
   }
 }

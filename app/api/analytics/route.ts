@@ -1,27 +1,30 @@
 import { createClient } from '@/lib/supabase/server'
+import { handleUnknownError, verifyRole } from '@/lib/api-helpers'
+import { analyticsQuerySchema } from '@/lib/validations'
+import { mapDatabaseFuelToApp } from '@/lib/fuel-helpers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type') || 'overview'
+    const typeParam = searchParams.get('type') || 'overview'
 
-    const supabase = await createClient()
-
-    // Verify user is admin
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Validate query parameters
+    const validationResult = analyticsQuerySchema.safeParse({ type: typeParam })
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid query parameters', details: validationResult.error.errors },
+        { status: 400 }
+      )
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    const { type } = validationResult.data
+    const supabase = await createClient()
 
-    if (profile?.role !== 'admin' && profile?.role !== 'logistics') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Verify user has admin or logistics role
+    const { hasAccess, error: roleError } = await verifyRole(supabase, ['admin', 'logistics'])
+    if (roleError || !hasAccess) {
+      return roleError || NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     switch (type) {
@@ -55,10 +58,10 @@ export async function GET(request: Request) {
         }
 
         fuelStatus?.forEach((fs) => {
-          const fuelType = fs.fuel_type as keyof typeof fuelByType
+          const appFuelType = mapDatabaseFuelToApp(fs.fuel_type)
           const status = fs.status as 'available' | 'low' | 'out_of_stock'
-          if (fuelByType[fuelType] && fuelByType[fuelType][status] !== undefined) {
-            fuelByType[fuelType][status]++
+          if (appFuelType && fuelByType[appFuelType] && fuelByType[appFuelType][status] !== undefined) {
+            fuelByType[appFuelType][status]++
           }
         })
 
@@ -140,10 +143,10 @@ export async function GET(request: Request) {
             coordinates: { lat: station.latitude, lng: station.longitude },
             overallStatus: hasAvailable ? 'available' : hasLow ? 'low' : 'out_of_stock',
             maxQueueLevel: maxQueue,
-            fuelStatus: fuelStatus.map((f: { fuel_type: string; status: string; price: number; queue_level: string }) => ({
-              type: f.fuel_type,
+            fuelStatus: fuelStatus.map((f: { fuel_type: string; status: string; price_per_liter: number | null; queue_level: string | null }) => ({
+              type: mapDatabaseFuelToApp(f.fuel_type) || f.fuel_type,
               status: f.status,
-              price: f.price,
+              price: f.price_per_liter,
               queue: f.queue_level,
             })),
           }
@@ -186,10 +189,12 @@ export async function GET(request: Request) {
           completedTrips.length > 0
             ? Math.round(
                 completedTrips.reduce((acc, t) => {
-                  if (t.actual_arrival && t.departure_time) {
+                  // Use actual_departure or scheduled_departure as fallback
+                  const departure = t.actual_departure || t.scheduled_departure
+                  if (t.actual_arrival && departure) {
                     return (
                       acc +
-                      (new Date(t.actual_arrival).getTime() - new Date(t.departure_time).getTime()) /
+                      (new Date(t.actual_arrival).getTime() - new Date(departure).getTime()) /
                         60000
                     )
                   }
@@ -206,8 +211,8 @@ export async function GET(request: Request) {
             averageDeliveryTimeMinutes: avgDeliveryTime,
             recentTrips: allTrips?.slice(0, 10).map((t) => ({
               id: t.id,
-              tanker: t.tankers?.registration_number,
-              station: t.stations?.name,
+              tanker: (t.tankers as { plate_number?: string })?.plate_number || 'Unknown',
+              station: (t.stations as { name?: string })?.name || 'Unknown',
               status: t.status,
               fuelType: t.fuel_type,
               quantity: t.quantity_liters,
@@ -220,7 +225,6 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Invalid analytics type' }, { status: 400 })
     }
   } catch (error) {
-    console.error('Analytics error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleUnknownError(error)
   }
 }

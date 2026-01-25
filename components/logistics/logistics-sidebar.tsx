@@ -44,12 +44,12 @@ export function LogisticsSidebar({ profile }: LogisticsSidebarProps) {
   return (
     <aside className="w-64 border-r border-border bg-card flex flex-col">
       <div className="p-4 border-b border-border">
-        <Link href="/" className="flex items-center gap-2 mb-4">
-          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
+        <Button asChild variant="ghost" size="sm" className="gap-1 text-muted-foreground mb-4">
+          <Link href="/" className="flex items-center gap-2">
             <ChevronLeft className="h-4 w-4" />
             Back to Map
-          </Button>
-        </Link>
+          </Link>
+        </Button>
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
             <Fuel className="h-5 w-5 text-primary-foreground" />
@@ -68,16 +68,17 @@ export function LogisticsSidebar({ profile }: LogisticsSidebarProps) {
             const isActive = pathname === item.href
             return (
               <li key={item.href}>
-                <Link href={item.href}>
-                  <Button
-                    variant={isActive ? 'secondary' : 'ghost'}
-                    className="w-full justify-start gap-3"
-                    size="sm"
-                  >
+                <Button
+                  asChild
+                  variant={isActive ? 'secondary' : 'ghost'}
+                  className="w-full justify-start gap-3"
+                  size="sm"
+                >
+                  <Link href={item.href}>
                     <Icon className="h-4 w-4" />
                     {item.label}
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </li>
             )
           })}
