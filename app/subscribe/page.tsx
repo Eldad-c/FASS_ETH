@@ -184,9 +184,9 @@ export default function SubscribePage() {
                           All Fuel Types
                         </div>
                       </SelectItem>
-                      <SelectItem value="petrol">Petrol</SelectItem>
                       <SelectItem value="diesel">Diesel</SelectItem>
-                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="benzene_95">Benzene 95</SelectItem>
+                      <SelectItem value="benzene_97">Benzene 97</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -282,7 +282,12 @@ export default function SubscribePage() {
                             {sub.station ? sub.station.name : 'All Stations'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {sub.fuel_type ? sub.fuel_type.charAt(0).toUpperCase() + sub.fuel_type.slice(1) : 'All Fuels'}
+                            {sub.fuel_type 
+                              ? sub.fuel_type === 'diesel' ? 'Diesel'
+                              : sub.fuel_type === 'benzene_95' ? 'Benzene 95'
+                              : sub.fuel_type === 'benzene_97' ? 'Benzene 97'
+                              : sub.fuel_type 
+                              : 'All Fuels'}
                             {' | '}
                             {[
                               sub.notify_on_available && 'Available',
