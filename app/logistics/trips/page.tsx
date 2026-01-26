@@ -180,9 +180,9 @@ export default function TripsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="petrol">Petrol</SelectItem>
                       <SelectItem value="diesel">Diesel</SelectItem>
-                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="benzene_95">Benzene 95</SelectItem>
+                      <SelectItem value="benzene_97">Benzene 97</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -261,7 +261,7 @@ export default function TripsPage() {
                         </div>
                       </TableCell>
                       <TableCell>{trip.destination_station?.name || 'N/A'}</TableCell>
-                      <TableCell className="capitalize">{trip.fuel_type}</TableCell>
+                      <TableCell>{trip.fuel_type === 'diesel' ? 'Diesel' : trip.fuel_type === 'benzene_95' ? 'Benzene 95' : trip.fuel_type === 'benzene_97' ? 'Benzene 97' : trip.fuel_type}</TableCell>
                       <TableCell>{trip.quantity_liters.toLocaleString()}L</TableCell>
                       <TableCell>
                         {trip.scheduled_departure

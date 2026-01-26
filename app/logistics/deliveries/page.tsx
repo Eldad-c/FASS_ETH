@@ -200,7 +200,7 @@ export default function DeliveriesPage() {
                         {delivery.trips?.tankers?.plate_number || 'N/A'}
                       </div>
                     </TableCell>
-                    <TableCell className="capitalize">{delivery.fuel_type}</TableCell>
+                    <TableCell>{delivery.fuel_type === 'diesel' ? 'Diesel' : delivery.fuel_type === 'benzene_95' ? 'Benzene 95' : delivery.fuel_type === 'benzene_97' ? 'Benzene 97' : delivery.fuel_type}</TableCell>
                     <TableCell>{delivery.quantity_liters.toLocaleString()} L</TableCell>
                     <TableCell>
                       {new Date(delivery.delivered_at).toLocaleString()}

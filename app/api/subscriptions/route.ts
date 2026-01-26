@@ -151,7 +151,7 @@ export async function PATCH(request: Request) {
     const updateSchema = z.object({
       subscriptionId: uuidSchema,
       station_id: uuidSchema.nullable().optional(),
-      fuel_type: z.enum(['petrol', 'diesel', 'premium']).nullable().optional(),
+      fuel_type: z.enum(['diesel', 'benzene_95', 'benzene_97']).nullable().optional(),
       notify_on_available: z.boolean().optional(),
       notify_on_low: z.boolean().optional(),
       notify_on_delivery: z.boolean().optional(),

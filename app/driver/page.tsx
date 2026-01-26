@@ -15,9 +15,11 @@ import {
   Play,
   LogOut,
   RefreshCw,
+  Map,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { DeliveryMap } from '@/components/driver/delivery-map'
 import type { Trip, Tanker, Profile, Station } from '@/lib/types'
 
 interface TripWithDetails extends Trip {
@@ -31,6 +33,8 @@ export default function DriverPage() {
   const [currentTrip, setCurrentTrip] = useState<TripWithDetails | null>(null)
   const [upcomingTrips, setUpcomingTrips] = useState<TripWithDetails[]>([])
   const [isUpdatingLocation, setIsUpdatingLocation] = useState(false)
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [routeInfo, setRouteInfo] = useState<{ distance: string; duration: number } | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -100,40 +104,68 @@ export default function DriverPage() {
   }
 
   const updateLocation = async () => {
-    if (!tanker || !navigator.geolocation) return
+    if (!navigator.geolocation) return
 
     setIsUpdatingLocation(true)
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const supabase = createClient()
-        await supabase
-          .from('tankers')
-          .update({
-            current_latitude: position.coords.latitude,
-            current_longitude: position.coords.longitude,
-            last_location_update: new Date().toISOString(),
-          })
-          .eq('id', tanker.id)
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        }
+        setUserLocation(newLocation)
 
-        // Also log to location history
-        await supabase.from('tanker_locations').insert({
-          tanker_id: tanker.id,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          speed: position.coords.speed,
-          heading: position.coords.heading,
-        })
+        if (tanker) {
+          const supabase = createClient()
+          await supabase
+            .from('tankers')
+            .update({
+              current_latitude: position.coords.latitude,
+              current_longitude: position.coords.longitude,
+              last_location_update: new Date().toISOString(),
+            })
+            .eq('id', tanker.id)
+
+          // Also log to location history
+          await supabase.from('tanker_locations').insert({
+            tanker_id: tanker.id,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            speed: position.coords.speed,
+            heading: position.coords.heading,
+          })
+        }
 
         setIsUpdatingLocation(false)
         fetchData()
       },
       (error) => {
         console.error('Location error:', error)
+        // Default to Addis Ababa if location denied
+        setUserLocation({ lat: 9.0054, lng: 38.7636 })
         setIsUpdatingLocation(false)
       }
     )
   }
+
+  // Get initial location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+        },
+        () => {
+          // Default to Addis Ababa
+          setUserLocation({ lat: 9.0054, lng: 38.7636 })
+        }
+      )
+    }
+  }, [])
 
   const startTrip = async (tripId: string) => {
     const supabase = createClient()
@@ -230,6 +262,24 @@ export default function DriverPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Delivery Tracking Map */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Map className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Delivery Tracking</h2>
+            {routeInfo && (
+              <Badge variant="outline" className="ml-auto bg-blue-500/10 text-blue-600 border-blue-500/30">
+                {routeInfo.distance} km - {routeInfo.duration} min
+              </Badge>
+            )}
+          </div>
+          <DeliveryMap
+            userLocation={userLocation}
+            destinationStation={currentTrip?.destination_station || null}
+            onRouteCalculated={setRouteInfo}
+          />
+        </div>
+
         {/* Driver Info */}
         <Card>
           <CardContent className="p-4">
@@ -291,7 +341,12 @@ export default function DriverPage() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="p-3 rounded-lg bg-muted/50">
                     <p className="text-xs text-muted-foreground">Fuel Type</p>
-                    <p className="font-semibold capitalize">{currentTrip.fuel_type}</p>
+                    <p className="font-semibold">
+                      {currentTrip.fuel_type === 'diesel' ? 'Diesel' 
+                        : currentTrip.fuel_type === 'benzene_95' ? 'Benzene 95'
+                        : currentTrip.fuel_type === 'benzene_97' ? 'Benzene 97'
+                        : currentTrip.fuel_type}
+                    </p>
                   </div>
                   <div className="p-3 rounded-lg bg-muted/50">
                     <p className="text-xs text-muted-foreground">Quantity</p>

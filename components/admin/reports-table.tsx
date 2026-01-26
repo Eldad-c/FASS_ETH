@@ -143,7 +143,7 @@ export function ReportsTable({ reports: initialReports, page, limit, total }: Re
                 filteredReports.map((report) => (
                   <TableRow key={report.id}>
                     <TableCell className="font-medium">{report.stations?.name || 'Unknown'}</TableCell>
-                    <TableCell className="capitalize">{report.fuel_type}</TableCell>
+                    <TableCell>{report.fuel_type === 'diesel' ? 'Diesel' : report.fuel_type === 'benzene_95' ? 'Benzene 95' : report.fuel_type === 'benzene_97' ? 'Benzene 97' : report.fuel_type}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[report.reported_status]}>
                         {report.reported_status.replaceAll('_', ' ')}

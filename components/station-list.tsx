@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, Phone, Clock, Droplets, Fuel, Sparkles, Users, Navigation } from 'lucide-react'
+import { MapPin, Phone, Clock, Droplets, Fuel, Gauge, Users, Navigation } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { StationWithFuelStatus, AvailabilityStatus, QueueLevel, FuelType } from '@/lib/types'
 
@@ -11,10 +11,11 @@ interface StationListProps {
   stations: StationWithFuelStatus[]
 }
 
+// Fuel types per SDS: Diesel, Benzene 95, Benzene 97
 const fuelConfig: Record<FuelType, { label: string; icon: typeof Fuel; color: string }> = {
-  petrol: { label: 'Petrol', icon: Fuel, color: 'orange' },
   diesel: { label: 'Diesel', icon: Droplets, color: 'blue' },
-  premium: { label: 'Premium', icon: Sparkles, color: 'amber' },
+  benzene_95: { label: 'Benzene 95', icon: Fuel, color: 'orange' },
+  benzene_97: { label: 'Benzene 97', icon: Gauge, color: 'red' },
 }
 
 const statusConfig: Record<AvailabilityStatus, { label: string; bgColor: string; textColor: string; dotColor: string }> = {
@@ -191,7 +192,7 @@ export function StationList({ stations }: StationListProps) {
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {station.fuel_status.map((fuel) => {
-                    const config = fuelConfig[fuel.fuel_type as FuelType] || fuelConfig.petrol
+                    const config = fuelConfig[fuel.fuel_type as FuelType] || fuelConfig.diesel
                     const status = statusConfig[fuel.status]
                     const queue = queueConfig[fuel.queue_level || 'none']
                     const FuelIcon = config.icon

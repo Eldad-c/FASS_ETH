@@ -52,15 +52,15 @@ interface StaffDashboardProps {
 }
 
 const fuelIcons: Record<FuelType, typeof Droplet> = {
-  petrol: Flame,
   diesel: Droplet,
-  premium: Star,
+  benzene_95: Flame,
+  benzene_97: Star,
 }
 
 const fuelLabels: Record<FuelType, string> = {
-  petrol: 'Petrol',
   diesel: 'Diesel',
-  premium: 'Premium',
+  benzene_95: 'Benzene 95',
+  benzene_97: 'Benzene 97',
 }
 
 const statusColors: Record<AvailabilityStatus, string> = {
@@ -442,7 +442,7 @@ export function StaffDashboard({ profile, station, pendingReports: initialReport
                   <Card key={report.id}>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center justify-between">
-                        <span className="capitalize">{report.fuel_type}</span>
+                        <span>{report.fuel_type === 'diesel' ? 'Diesel' : report.fuel_type === 'benzene_95' ? 'Benzene 95' : report.fuel_type === 'benzene_97' ? 'Benzene 97' : report.fuel_type}</span>
                         <Badge variant="outline" className={statusColors[report.reported_status]}>
                           {statusLabels[report.reported_status]}
                         </Badge>

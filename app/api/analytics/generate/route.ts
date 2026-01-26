@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { handleUnknownError, verifyRole } from '@/lib/api-helpers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { mapDatabaseFuelToApp } from '@/lib/fuel-helpers'
+import { getFuelLabel } from '@/lib/fuel-helpers'
 
 const bodySchema = z.object({
   reportType: z.enum(['FUEL_TRENDS', 'USER_ACTIVITY', 'REPORT_STATS']),
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       const byFuel: Record<string, { available: number; low: number; out_of_stock: number }> = {}
       const byDay: Record<string, { available: number; low: number; out_of_stock: number }> = {}
       for (const h of history || []) {
-        const ft = mapDatabaseFuelToApp(h.fuel_type) || h.fuel_type
+        const ft = getFuelLabel(h.fuel_type)
         if (!byFuel[ft]) byFuel[ft] = { available: 0, low: 0, out_of_stock: 0 }
         const s = (h.status as string) || 'available'
         if (s === 'available') byFuel[ft].available++

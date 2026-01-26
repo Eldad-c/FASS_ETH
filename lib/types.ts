@@ -1,8 +1,8 @@
 // User roles - expanded for logistics, drivers, managers, and IT support
 export type UserRole = 'public' | 'staff' | 'admin' | 'driver' | 'logistics' | 'manager' | 'it_support'
 
-// Fuel types and availability status
-export type FuelType = 'petrol' | 'diesel' | 'premium'
+// Fuel types per SDS: Diesel, Benzene 95, Benzene 97
+export type FuelType = 'diesel' | 'benzene_95' | 'benzene_97'
 export type AvailabilityStatus = 'available' | 'low' | 'out_of_stock'
 export type QueueLevel = 'none' | 'short' | 'medium' | 'long' | 'very_long'
 export type ReportStatus = 'pending' | 'verified' | 'rejected'
@@ -208,9 +208,9 @@ export interface TankerLocation {
 // Analytics types for admin dashboard
 export interface FuelAnalytics {
   total_stations: number
-  stations_with_petrol: number
   stations_with_diesel: number
-  stations_with_premium: number
+  stations_with_benzene_95: number
+  stations_with_benzene_97: number
   stations_out_of_stock: number
   average_queue_level: string
 }

@@ -103,7 +103,7 @@ export default async function StationDetailPage({
                   return (
                     <div key={fuel.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <div className="font-semibold">{fuel.fuel_type}</div>
+                        <div className="font-semibold">{fuel.fuel_type === 'diesel' ? 'Diesel' : fuel.fuel_type === 'benzene_95' ? 'Benzene 95' : fuel.fuel_type === 'benzene_97' ? 'Benzene 97' : fuel.fuel_type}</div>
                         <Badge className={statusColor}>{fuel.status}</Badge>
                       </div>
                       {fuel.price_per_liter && (

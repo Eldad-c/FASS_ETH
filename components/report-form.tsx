@@ -187,9 +187,9 @@ export function ReportForm({ stations }: ReportFormProps) {
                   <SelectValue placeholder="Select type..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="petrol">Petrol</SelectItem>
                   <SelectItem value="diesel">Diesel</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="benzene_95">Benzene 95</SelectItem>
+                  <SelectItem value="benzene_97">Benzene 97</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -284,7 +284,7 @@ export function ReportForm({ stations }: ReportFormProps) {
               id="comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="E.g., 'Station is busy but moving fast', 'Only premium available', etc."
+              placeholder="E.g., 'Station is busy but moving fast', 'Only Benzene 97 available', etc."
               rows={3}
             />
           </div>

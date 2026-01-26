@@ -249,9 +249,9 @@ export default function DispatchPage() {
                     <SelectValue placeholder="Select fuel type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="petrol">Petrol</SelectItem>
                     <SelectItem value="diesel">Diesel</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
+                    <SelectItem value="benzene_95">Benzene 95</SelectItem>
+                    <SelectItem value="benzene_97">Benzene 97</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -338,8 +338,11 @@ export default function DispatchPage() {
                     </div>
                     <div>
                       <p className="font-medium">{request.stations?.name}</p>
-                      <p className="text-sm text-muted-foreground capitalize">
-                        Needs {request.fuel_type}
+                      <p className="text-sm text-muted-foreground">
+                        Needs {request.fuel_type === 'diesel' ? 'Diesel' 
+                          : request.fuel_type === 'benzene_95' ? 'Benzene 95'
+                          : request.fuel_type === 'benzene_97' ? 'Benzene 97'
+                          : request.fuel_type}
                       </p>
                     </div>
                   </div>

@@ -33,9 +33,9 @@ interface AnalyticsData {
     pendingReports: number
   }
   fuelAvailability: {
-    petrol: { available: number; low: number; out_of_stock: number }
     diesel: { available: number; low: number; out_of_stock: number }
-    premium: { available: number; low: number; out_of_stock: number }
+    benzene_95: { available: number; low: number; out_of_stock: number }
+    benzene_97: { available: number; low: number; out_of_stock: number }
   }
   queueDistribution: {
     none: number
@@ -45,9 +45,9 @@ interface AnalyticsData {
     very_long: number
   }
   availabilityPercentage: {
-    petrol: number
     diesel: number
-    premium: number
+    benzene_95: number
+    benzene_97: number
   }
 }
 
@@ -312,13 +312,14 @@ export default function AdminAnalyticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {(['petrol', 'diesel', 'premium'] as const).map((fuelType) => {
+            {(['diesel', 'benzene_95', 'benzene_97'] as const).map((fuelType) => {
               const fuel = data.fuelAvailability[fuelType]
               const total = fuel.available + fuel.low + fuel.out_of_stock || 1
+              const label = fuelType === 'diesel' ? 'Diesel' : fuelType === 'benzene_95' ? 'Benzene 95' : 'Benzene 97'
               return (
                 <div key={fuelType} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium capitalize">{fuelType}</span>
+                    <span className="text-sm font-medium">{label}</span>
                     <Badge variant="outline">
                       {data.availabilityPercentage[fuelType]}% Available
                     </Badge>
