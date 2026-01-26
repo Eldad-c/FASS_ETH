@@ -3,7 +3,6 @@ import { Header } from '@/components/header'
 import { StationList } from '@/components/station-list'
 import { StationMap } from '@/components/station-map'
 import { FuelFilter } from '@/components/fuel-filter'
-import { Card, CardContent } from '@/components/ui/card'
 import { Fuel, TrendingUp, AlertTriangle, Clock } from 'lucide-react'
 import type { StationWithFuelStatus } from '@/lib/types'
 
@@ -35,66 +34,61 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2 text-balance">
+      <main className="flex-1 container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-2 tracking-tight">
             Find Fuel Near You
           </h1>
-          <p className="text-muted-foreground">
-            Real-time fuel availability at TotalEnergiesEthiopia stations in Addis Ababa
+          <p className="text-muted-foreground text-sm md:text-base">
+            Real-time fuel availability at TotalEnergies stations in Addis Ababa
           </p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Fuel className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{totalStations}</p>
-                <p className="text-xs text-muted-foreground">Total Stations</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-green-600">{stationsWithAvailable}</p>
-                <p className="text-xs text-muted-foreground">Fuel Available</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-                <AlertTriangle className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-yellow-600">{stationsWithLow}</p>
-                <p className="text-xs text-muted-foreground">Low Stock</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-red-600">{stationsOutOfStock}</p>
-                <p className="text-xs text-muted-foreground">Out of Stock</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Stats Overview - Minimal Notion-like cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50 border border-border/50">
+            <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Fuel className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-semibold tabular-nums">{totalStations}</p>
+              <p className="text-xs text-muted-foreground truncate">Total Stations</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/30">
+            <div className="h-9 w-9 rounded-md bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">{stationsWithAvailable}</p>
+              <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 truncate">Available</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-800/30">
+            <div className="h-9 w-9 rounded-md bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-semibold text-amber-700 dark:text-amber-400 tabular-nums">{stationsWithLow}</p>
+              <p className="text-xs text-amber-600/70 dark:text-amber-400/70 truncate">Low Stock</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-800/30">
+            <div className="h-9 w-9 rounded-md bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center flex-shrink-0">
+              <Clock className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-semibold text-rose-700 dark:text-rose-400 tabular-nums">{stationsOutOfStock}</p>
+              <p className="text-xs text-rose-600/70 dark:text-rose-400/70 truncate">Out of Stock</p>
+            </div>
+          </div>
         </div>
 
+        {/* Fuel Filter */}
         <FuelFilter />
 
+        {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-6 mt-6">
           <div className="order-2 lg:order-1">
             <StationList stations={stationsWithFuel} />
