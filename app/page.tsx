@@ -9,11 +9,27 @@ import type { StationWithFuelStatus } from '@/lib/types'
 export default async function HomePage() {
   const supabase = await createClient()
 
+  // Updated query to fetch SDS-aligned fields
   const { data: stations } = await supabase
     .from('stations')
     .select(`
-      *,
-      fuel_status (*)
+      id,
+      name,
+      address,
+      latitude,
+      longitude,
+      operating_hours,
+      is_active,
+      estimated_queue_level,
+      next_delivery_eta,
+      fuel_status (
+        id,
+        fuel_type,
+        status,
+        queue_level,
+        price_per_liter,
+        updated_at
+      )
     `)
     .eq('is_active', true)
     .order('name')
@@ -45,7 +61,7 @@ export default async function HomePage() {
           </p>
         </div>
 
-        {/* Stats Overview - Minimal Notion-like cards */}
+        {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50 border border-border/50">
             <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
