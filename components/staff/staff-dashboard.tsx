@@ -52,15 +52,15 @@ interface StaffDashboardProps {
 }
 
 const fuelIcons: Record<FuelType, typeof Droplet> = {
-  petrol: Flame,
   diesel: Droplet,
-  premium: Star,
+  benzene_95: Flame,
+  benzene_97: Star,
 }
 
 const fuelLabels: Record<FuelType, string> = {
-  petrol: 'Petrol',
   diesel: 'Diesel',
-  premium: 'Premium',
+  benzene_95: 'Benzene 95',
+  benzene_97: 'Benzene 97',
 }
 
 const statusColors: Record<AvailabilityStatus, string> = {

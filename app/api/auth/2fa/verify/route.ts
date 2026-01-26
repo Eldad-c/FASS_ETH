@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
       if (isValid) {
         // Remove used backup code
-        const updatedCodes = profile.two_factor_backup_codes.filter((code) => code !== token)
+        const updatedCodes = profile.two_factor_backup_codes.filter((code: string) => code !== token)
         await supabase
           .from('profiles')
           .update({ two_factor_backup_codes: updatedCodes })

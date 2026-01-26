@@ -1,48 +1,48 @@
 /**
  * Fuel type mapping helpers
- * Maps between database fuel types and TypeScript types
+ * Maps between database fuel types and display labels
+ * Per SDS: Diesel, Benzene 95, Benzene 97
  */
 
-export type DatabaseFuelType = 'Benzene 95' | 'Benzene 97' | 'Diesel' | 'Kerosene'
-export type AppFuelType = 'petrol' | 'diesel' | 'premium'
+export type FuelTypeCode = 'diesel' | 'benzene_95' | 'benzene_97'
+
+export const FUEL_TYPE_LABELS: Record<FuelTypeCode, string> = {
+  diesel: 'Diesel',
+  benzene_95: 'Benzene 95',
+  benzene_97: 'Benzene 97',
+}
 
 /**
- * Maps database fuel type to app fuel type
+ * Gets display label for fuel type
  */
-export function mapDatabaseFuelToApp(dbFuel: string | null | undefined): AppFuelType | null {
-  if (!dbFuel) return null
+export function getFuelLabel(fuelType: string | null | undefined): string {
+  if (!fuelType) return 'Unknown'
+  return FUEL_TYPE_LABELS[fuelType as FuelTypeCode] || fuelType
+}
+
+/**
+ * Normalizes fuel type string to standardized code
+ */
+export function normalizeFuelType(fuelType: string | null | undefined): FuelTypeCode | null {
+  if (!fuelType) return null
   
-  const normalized = dbFuel.trim()
-  if (normalized === 'Benzene 95' || normalized === 'Benzene 97') {
-    return 'petrol'
-  }
-  if (normalized === 'Diesel') {
-    return 'diesel'
-  }
-  if (normalized === 'Kerosene') {
-    return 'premium'
-  }
+  const normalized = fuelType.trim().toLowerCase()
   
-  // Fallback: try direct match
-  if (['petrol', 'diesel', 'premium'].includes(normalized.toLowerCase())) {
-    return normalized.toLowerCase() as AppFuelType
-  }
+  if (normalized === 'diesel') return 'diesel'
+  if (normalized === 'benzene_95' || normalized === 'benzene 95') return 'benzene_95'
+  if (normalized === 'benzene_97' || normalized === 'benzene 97') return 'benzene_97'
+  
+  // Legacy mappings
+  if (normalized === 'petrol') return 'benzene_95'
+  if (normalized === 'premium') return 'benzene_97'
   
   return null
 }
 
 /**
- * Maps app fuel type to database fuel type
+ * Checks if a fuel type is valid
  */
-export function mapAppFuelToDatabase(appFuel: AppFuelType): DatabaseFuelType {
-  switch (appFuel) {
-    case 'petrol':
-      return 'Benzene 95' // Default to 95, could be made configurable
-    case 'diesel':
-      return 'Diesel'
-    case 'premium':
-      return 'Benzene 97'
-    default:
-      return 'Benzene 95'
-  }
+export function isValidFuelType(fuelType: string | null | undefined): boolean {
+  if (!fuelType) return false
+  return ['diesel', 'benzene_95', 'benzene_97'].includes(fuelType)
 }

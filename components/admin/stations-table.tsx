@@ -109,11 +109,11 @@ export function StationsTable({
       .maybeSingle()
 
     if (!error && data) {
-      // Create fuel status entries for the new station
+      // Create fuel status entries for the new station (Diesel, Benzene 95, Benzene 97)
       await supabase.from('fuel_status').insert([
-        { station_id: data.id, fuel_type: 'petrol', status: 'available' },
         { station_id: data.id, fuel_type: 'diesel', status: 'available' },
-        { station_id: data.id, fuel_type: 'premium', status: 'available' },
+        { station_id: data.id, fuel_type: 'benzene_95', status: 'available' },
+        { station_id: data.id, fuel_type: 'benzene_97', status: 'available' },
       ])
 
       router.refresh()

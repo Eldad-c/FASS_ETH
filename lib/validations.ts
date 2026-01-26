@@ -6,8 +6,8 @@ import { z } from 'zod'
 // User role validation
 export const userRoleSchema = z.enum(['public', 'staff', 'admin', 'driver', 'logistics'])
 
-// Fuel type validation
-export const fuelTypeSchema = z.enum(['petrol', 'diesel', 'premium'])
+// Fuel type validation (Diesel, Benzene 95, Benzene 97 per SDS)
+export const fuelTypeSchema = z.enum(['diesel', 'benzene_95', 'benzene_97'])
 
 // Availability status validation
 export const availabilityStatusSchema = z.enum(['available', 'low', 'out_of_stock'])

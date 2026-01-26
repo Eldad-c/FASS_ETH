@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { handleUnknownError, verifyRole } from '@/lib/api-helpers'
 import { analyticsQuerySchema } from '@/lib/validations'
-import { mapDatabaseFuelToApp } from '@/lib/fuel-helpers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -50,18 +49,18 @@ export async function GET(request: Request) {
           .select('*')
           .in('status', ['pending', 'OPEN'])
 
-        // Calculate fuel availability by type
+        // Calculate fuel availability by type (Diesel, Benzene 95, Benzene 97)
         const fuelByType = {
-          petrol: { available: 0, low: 0, out_of_stock: 0 },
           diesel: { available: 0, low: 0, out_of_stock: 0 },
-          premium: { available: 0, low: 0, out_of_stock: 0 },
+          benzene_95: { available: 0, low: 0, out_of_stock: 0 },
+          benzene_97: { available: 0, low: 0, out_of_stock: 0 },
         }
 
         fuelStatus?.forEach((fs) => {
-          const appFuelType = mapDatabaseFuelToApp(fs.fuel_type)
+          const fuelType = fs.fuel_type as keyof typeof fuelByType
           const status = fs.status as 'available' | 'low' | 'out_of_stock'
-          if (appFuelType && fuelByType[appFuelType] && fuelByType[appFuelType][status] !== undefined) {
-            fuelByType[appFuelType][status]++
+          if (fuelType && fuelByType[fuelType] && fuelByType[fuelType][status] !== undefined) {
+            fuelByType[fuelType][status]++
           }
         })
 
@@ -91,19 +90,19 @@ export async function GET(request: Request) {
           fuelAvailability: fuelByType,
           queueDistribution,
           availabilityPercentage: {
-            petrol: Math.round(
-              (fuelByType.petrol.available /
-                (fuelByType.petrol.available + fuelByType.petrol.low + fuelByType.petrol.out_of_stock || 1)) *
-                100
-            ),
             diesel: Math.round(
               (fuelByType.diesel.available /
                 (fuelByType.diesel.available + fuelByType.diesel.low + fuelByType.diesel.out_of_stock || 1)) *
                 100
             ),
-            premium: Math.round(
-              (fuelByType.premium.available /
-                (fuelByType.premium.available + fuelByType.premium.low + fuelByType.premium.out_of_stock || 1)) *
+            benzene_95: Math.round(
+              (fuelByType.benzene_95.available /
+                (fuelByType.benzene_95.available + fuelByType.benzene_95.low + fuelByType.benzene_95.out_of_stock || 1)) *
+                100
+            ),
+            benzene_97: Math.round(
+              (fuelByType.benzene_97.available /
+                (fuelByType.benzene_97.available + fuelByType.benzene_97.low + fuelByType.benzene_97.out_of_stock || 1)) *
                 100
             ),
           },
