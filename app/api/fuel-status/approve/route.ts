@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     const { error: updateError } = await supabase
       .from('fuel_status')
       .update(updateData)
-      .eq('id', approval.fuel_status_id)
+      .eq('id', fuelStatusId)
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
@@ -80,8 +80,8 @@ export async function POST(request: Request) {
       .eq('id', fuelStatusId)
       .eq('status', 'PENDING')
 
-    if (approvalError) {
-      console.error('Error updating pending approvals:', approvalError)
+    if (approvalUpdateError) {
+      console.error('Error updating pending approvals:', approvalUpdateError)
     }
 
     // Create notification for staff member who submitted
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       approvalId: fuelStatusId,
-      fuelStatusId: approval.fuel_status_id,
+      fuelStatusId: fuelStatusId,
       action,
       message: `Update ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
     })
