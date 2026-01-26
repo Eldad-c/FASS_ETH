@@ -136,19 +136,19 @@ This document summarizes all the features that have been implemented to align th
 ## 🚀 Setup Instructions
 
 ### 1. Run Database Migrations
-```sql
+\`\`\`sql
 -- Run in order:
 -- 1. scripts/001_create_fas_schema.sql
 -- 2. scripts/002_expand_fas_schema.sql
 -- 3. scripts/004_add_missing_features.sql
-```
+\`\`\`
 
 ### 2. Install Dependencies
-```bash
+\`\`\`bash
 npm install
 # or
 pnpm install
-```
+\`\`\`
 
 New dependencies added:
 - `otplib` - For 2FA

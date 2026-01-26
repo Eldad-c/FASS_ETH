@@ -1,9 +1,10 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Droplets, Fuel, Sparkles, Filter } from 'lucide-react'
+import { Droplets, Fuel, Gauge, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// Fuel types per SDS: Diesel, Benzene 95, Benzene 97
 const fuelTypes = [
   { 
     value: 'all', 
@@ -13,28 +14,28 @@ const fuelTypes = [
     activeColor: 'bg-primary text-primary-foreground',
   },
   { 
-    value: 'petrol', 
-    label: 'Petrol', 
-    icon: Fuel,
-    description: 'Regular unleaded',
-    color: 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-700 dark:text-orange-400',
-    activeColor: 'bg-orange-500 text-white',
-  },
-  { 
     value: 'diesel', 
     label: 'Diesel', 
     icon: Droplets,
-    description: 'Standard diesel',
+    description: 'Standard diesel fuel',
     color: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400',
     activeColor: 'bg-blue-500 text-white',
   },
   { 
-    value: 'premium', 
-    label: 'Premium', 
-    icon: Sparkles,
-    description: 'High octane',
-    color: 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400',
-    activeColor: 'bg-amber-500 text-white',
+    value: 'benzene_95', 
+    label: 'Benzene 95', 
+    icon: Fuel,
+    description: 'Regular unleaded petrol',
+    color: 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-700 dark:text-orange-400',
+    activeColor: 'bg-orange-500 text-white',
+  },
+  { 
+    value: 'benzene_97', 
+    label: 'Benzene 97', 
+    icon: Gauge,
+    description: 'Premium high octane',
+    color: 'bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400',
+    activeColor: 'bg-red-600 text-white',
   },
 ]
 
