@@ -84,11 +84,29 @@ function buildEnv(): Env {
   try {
     return validateEnv()
   } catch (error) {
-    // Never silently misconfigure production.
-    if (process.env.NODE_ENV === 'production') {
+    // During Next.js build phase, allow build to proceed even if env vars are missing
+    // This prevents build failures when env vars aren't set yet
+    // Runtime validation will occur when the app actually runs
+    const isBuildTime = 
+      process.env.NEXT_PHASE === 'phase-production-build' ||
+      process.env.NEXT_PHASE === 'phase-development-build' ||
+      (typeof window === 'undefined' && process.env.NEXT_RUNTIME === undefined && !process.env.VERCEL_ENV)
+    
+    if (isBuildTime) {
+      console.warn(
+        '[BUILD] Environment validation warning:',
+        error instanceof Error ? error.message : error,
+        '\nBuild will continue. Ensure environment variables are set in your deployment platform.'
+      )
+      return buildFallbackEnv()
+    }
+
+    // At runtime in production (Vercel, etc.), fail fast if env vars are missing
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV) {
       throw error
     }
 
+    // In development, warn but allow to proceed
     console.warn(
       'Environment validation warning:',
       error instanceof Error ? error.message : error
@@ -100,7 +118,8 @@ function buildEnv(): Env {
 
 /**
  * Validated environment configuration.
- * - In production: throws if required vars are missing.
- * - In development: warns and falls back to best-effort values.
+ * - During build: allows build to proceed even if env vars are missing
+ * - At runtime in production: throws if required vars are missing
+ * - In development: warns and falls back to best-effort values
  */
 export const env: Env = buildEnv()

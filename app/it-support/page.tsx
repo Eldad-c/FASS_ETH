@@ -27,9 +27,23 @@ export default async function ITSupportPage() {
   }
 
   // Get system health and getMetrics (Use Case 7: Maintain System Health)
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const healthResponse = await fetch(`${baseUrl}/api/system/health`)
-  const health = healthResponse.ok ? await healthResponse.json() : null
+  // Use VERCEL_URL in production, or construct from environment
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+                  (process.env.NODE_ENV === 'production' ? null : 'http://localhost:3000')
+  
+  let health = null
+  if (baseUrl) {
+    try {
+      const healthResponse = await fetch(`${baseUrl}/api/system/health`, {
+        // Add cache control for server-side fetch
+        cache: 'no-store',
+      })
+      health = healthResponse.ok ? await healthResponse.json() : null
+    } catch (error) {
+      console.error('Failed to fetch system health:', error)
+    }
+  }
 
   // Get recent system logs
   const { data: recentLogs } = await supabase
