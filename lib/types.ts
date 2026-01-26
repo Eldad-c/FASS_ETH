@@ -208,9 +208,9 @@ export interface TankerLocation {
 // Analytics types for admin dashboard
 export interface FuelAnalytics {
   total_stations: number
-  stations_with_petrol: number
   stations_with_diesel: number
-  stations_with_premium: number
+  stations_with_benzene_95: number
+  stations_with_benzene_97: number
   stations_out_of_stock: number
   average_queue_level: string
 }

@@ -143,7 +143,7 @@ export async function GET(request: Request) {
             overallStatus: hasAvailable ? 'available' : hasLow ? 'low' : 'out_of_stock',
             maxQueueLevel: maxQueue,
             fuelStatus: fuelStatus.map((f: { fuel_type: string; status: string; price_per_liter: number | null; queue_level: string | null }) => ({
-              type: mapDatabaseFuelToApp(f.fuel_type) || f.fuel_type,
+              type: f.fuel_type,
               status: f.status,
               price: f.price_per_liter,
               queue: f.queue_level,

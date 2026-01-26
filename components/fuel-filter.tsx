@@ -25,7 +25,7 @@ const fuelTypes = [
     value: 'benzene_95', 
     label: 'Benzene 95', 
     icon: Fuel,
-    description: 'Regular unleaded petrol',
+    description: 'Regular unleaded fuel',
     color: 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-700 dark:text-orange-400',
     activeColor: 'bg-orange-500 text-white',
   },

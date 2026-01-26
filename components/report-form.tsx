@@ -284,7 +284,7 @@ export function ReportForm({ stations }: ReportFormProps) {
               id="comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="E.g., 'Station is busy but moving fast', 'Only premium available', etc."
+              placeholder="E.g., 'Station is busy but moving fast', 'Only Benzene 97 available', etc."
               rows={3}
             />
           </div>
