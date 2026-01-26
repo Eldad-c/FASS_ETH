@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { MapPin, Fuel, Navigation, Clock, Users, X, Locate, Route } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { StationWithFuelStatus, AvailabilityStatus, QueueLevel } from '@/lib/types'
+import type * as L from 'leaflet'
 
 interface StationMapProps {
   stations: StationWithFuelStatus[]
