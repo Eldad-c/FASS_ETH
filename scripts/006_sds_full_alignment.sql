@@ -28,8 +28,19 @@ ALTER TABLE public.stations ADD COLUMN IF NOT EXISTS estimated_queue_level TEXT
 ALTER TABLE public.stations ADD COLUMN IF NOT EXISTS next_delivery_eta TIMESTAMPTZ;
 ALTER TABLE public.stations ADD COLUMN IF NOT EXISTS manager_id UUID REFERENCES public.profiles(id);
 
--- Rename open_hours to operating_hours for consistency
-ALTER TABLE public.stations RENAME COLUMN open_hours TO operating_hours;
+-- Check if operating_hours exists, if not rename from open_hours
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'stations' AND column_name = 'operating_hours'
+  ) AND EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'stations' AND column_name = 'open_hours'
+  ) THEN
+    ALTER TABLE public.stations RENAME COLUMN open_hours TO operating_hours;
+  END IF;
+END $$;
 
 -- =============================================================================
 -- 3. UPDATE FUEL_STATUS TABLE TO MATCH SDS FUELSTATUS CLASS
@@ -37,18 +48,23 @@ ALTER TABLE public.stations RENAME COLUMN open_hours TO operating_hours;
 -- Per SDS Section 4.8: statusID, fuelType, isAvailable, lastUpdated, updatedBy
 -- Fuel types: Diesel, Benzene 95, Benzene 97 only
 
--- First, remove any Kerosene entries
+-- First, drop the constraint so we can update data
+ALTER TABLE public.fuel_status DROP CONSTRAINT IF EXISTS fuel_status_fuel_type_check;
+
+-- Remove any Kerosene entries
 DELETE FROM public.fuel_status WHERE fuel_type = 'Kerosene';
 
--- Update the fuel_type constraint
-ALTER TABLE public.fuel_status DROP CONSTRAINT IF EXISTS fuel_status_fuel_type_check;
+-- Normalize existing fuel type values BEFORE adding constraint
+UPDATE public.fuel_status SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95', 'petrol', 'Petrol');
+UPDATE public.fuel_status SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97', 'premium', 'Premium');
+UPDATE public.fuel_status SET fuel_type = 'diesel' WHERE fuel_type IN ('Diesel', 'DIESEL');
+
+-- Delete any remaining non-standard fuel types
+DELETE FROM public.fuel_status WHERE fuel_type NOT IN ('diesel', 'benzene_95', 'benzene_97');
+
+-- Now add the fuel_type constraint
 ALTER TABLE public.fuel_status ADD CONSTRAINT fuel_status_fuel_type_check 
   CHECK (fuel_type IN ('diesel', 'benzene_95', 'benzene_97'));
-
--- Normalize existing fuel type values
-UPDATE public.fuel_status SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95', 'petrol');
-UPDATE public.fuel_status SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97', 'premium');
-UPDATE public.fuel_status SET fuel_type = 'diesel' WHERE fuel_type = 'Diesel';
 
 -- Add SDS-required columns
 ALTER TABLE public.fuel_status ADD COLUMN IF NOT EXISTS status TEXT 
@@ -62,9 +78,29 @@ ALTER TABLE public.fuel_status ADD COLUMN IF NOT EXISTS approved_by UUID REFEREN
 ALTER TABLE public.fuel_status ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
 ALTER TABLE public.fuel_status ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
 
--- Rename columns for consistency
-ALTER TABLE public.fuel_status RENAME COLUMN last_updated TO updated_at;
-ALTER TABLE public.fuel_status RENAME COLUMN updated_by TO last_updated_by;
+-- Rename columns for consistency (only if needed)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'fuel_status' AND column_name = 'last_updated'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'fuel_status' AND column_name = 'updated_at'
+  ) THEN
+    ALTER TABLE public.fuel_status RENAME COLUMN last_updated TO updated_at;
+  END IF;
+  
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'fuel_status' AND column_name = 'updated_by'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'fuel_status' AND column_name = 'last_updated_by'
+  ) THEN
+    ALTER TABLE public.fuel_status RENAME COLUMN updated_by TO last_updated_by;
+  END IF;
+END $$;
 
 -- Update status based on is_available
 UPDATE public.fuel_status SET status = CASE WHEN is_available = true THEN 'available' ELSE 'out_of_stock' END 
@@ -83,8 +119,12 @@ ALTER TABLE public.user_reports ADD COLUMN IF NOT EXISTS comment TEXT;
 ALTER TABLE public.user_reports ADD COLUMN IF NOT EXISTS verified_by UUID REFERENCES public.profiles(id);
 ALTER TABLE public.user_reports ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
 
--- Update fuel_type constraint on user_reports
+-- Update fuel_type on user_reports (normalize first)
 ALTER TABLE public.user_reports DROP CONSTRAINT IF EXISTS user_reports_fuel_type_check;
+UPDATE public.user_reports SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95', 'petrol', 'Petrol');
+UPDATE public.user_reports SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97', 'premium', 'Premium');
+UPDATE public.user_reports SET fuel_type = 'diesel' WHERE fuel_type IN ('Diesel', 'DIESEL');
+DELETE FROM public.user_reports WHERE fuel_type NOT IN ('diesel', 'benzene_95', 'benzene_97');
 ALTER TABLE public.user_reports ADD CONSTRAINT user_reports_fuel_type_check 
   CHECK (fuel_type IN ('diesel', 'benzene_95', 'benzene_97'));
 
@@ -93,70 +133,97 @@ ALTER TABLE public.user_reports ADD CONSTRAINT user_reports_fuel_type_check
 -- =============================================================================
 -- Per SDS Section 4.13: tankerID, plateNumber, fuelCapacity, currentLatitude, currentLongitude, status
 ALTER TABLE public.tankers DROP CONSTRAINT IF EXISTS tankers_fuel_type_check;
+
+-- Update fuel type values FIRST
+UPDATE public.tankers SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95', 'petrol', 'Petrol');
+UPDATE public.tankers SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97', 'premium', 'Premium');
+UPDATE public.tankers SET fuel_type = 'diesel' WHERE fuel_type IN ('Diesel', 'DIESEL');
+UPDATE public.tankers SET fuel_type = 'mixed' WHERE fuel_type NOT IN ('diesel', 'benzene_95', 'benzene_97', 'mixed');
+
+-- Now add constraint
 ALTER TABLE public.tankers ADD CONSTRAINT tankers_fuel_type_check 
   CHECK (fuel_type IN ('diesel', 'benzene_95', 'benzene_97', 'mixed'));
 
--- Update fuel type values
-UPDATE public.tankers SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95');
-UPDATE public.tankers SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97');
-UPDATE public.tankers SET fuel_type = 'diesel' WHERE fuel_type = 'Diesel';
-UPDATE public.tankers SET fuel_type = 'mixed' WHERE fuel_type IN ('Kerosene', 'Mixed');
-
--- Update status constraint per SDS
+-- Update status constraint per SDS (normalize first)
 ALTER TABLE public.tankers DROP CONSTRAINT IF EXISTS tankers_status_check;
+UPDATE public.tankers SET status = 'available' WHERE status IN ('AVAILABLE', 'Available');
+UPDATE public.tankers SET status = 'in_transit' WHERE status IN ('EN_ROUTE', 'LOADING', 'DELIVERING', 'In Transit');
+UPDATE public.tankers SET status = 'maintenance' WHERE status IN ('MAINTENANCE', 'Maintenance');
+UPDATE public.tankers SET status = 'available' WHERE status NOT IN ('available', 'in_transit', 'maintenance', 'offline');
 ALTER TABLE public.tankers ADD CONSTRAINT tankers_status_check 
   CHECK (status IN ('available', 'in_transit', 'maintenance', 'offline'));
 
--- Normalize status values
-UPDATE public.tankers SET status = 'available' WHERE status IN ('AVAILABLE');
-UPDATE public.tankers SET status = 'in_transit' WHERE status IN ('EN_ROUTE', 'LOADING', 'DELIVERING');
-UPDATE public.tankers SET status = 'maintenance' WHERE status = 'MAINTENANCE';
-
--- Rename columns for consistency
-ALTER TABLE public.tankers RENAME COLUMN capacity_liters TO capacity_liters;
-ALTER TABLE public.tankers RENAME COLUMN speed_kmh TO speed;
+-- Rename columns for consistency (only if needed)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'tankers' AND column_name = 'speed_kmh'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'tankers' AND column_name = 'speed'
+  ) THEN
+    ALTER TABLE public.tankers RENAME COLUMN speed_kmh TO speed;
+  END IF;
+END $$;
 
 -- =============================================================================
 -- 6. UPDATE TRIPS TABLE TO MATCH SDS DELIVERY CLASS
 -- =============================================================================
 -- Per SDS Section 4.12: deliveryID, stationID, driverID, expectedTime, notes, status
 ALTER TABLE public.trips DROP CONSTRAINT IF EXISTS trips_fuel_type_check;
+
+-- Update fuel type values FIRST
+UPDATE public.trips SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95', 'petrol', 'Petrol');
+UPDATE public.trips SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97', 'premium', 'Premium');
+UPDATE public.trips SET fuel_type = 'diesel' WHERE fuel_type IN ('Diesel', 'DIESEL');
+UPDATE public.trips SET fuel_type = 'diesel' WHERE fuel_type NOT IN ('diesel', 'benzene_95', 'benzene_97');
+
+-- Now add constraint
 ALTER TABLE public.trips ADD CONSTRAINT trips_fuel_type_check 
   CHECK (fuel_type IN ('diesel', 'benzene_95', 'benzene_97'));
 
--- Update fuel type values
-UPDATE public.trips SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95');
-UPDATE public.trips SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97');
-UPDATE public.trips SET fuel_type = 'diesel' WHERE fuel_type = 'Diesel';
-
--- Update status constraint per SDS
+-- Update status constraint per SDS (normalize first)
 ALTER TABLE public.trips DROP CONSTRAINT IF EXISTS trips_status_check;
+UPDATE public.trips SET status = 'scheduled' WHERE status IN ('SCHEDULED', 'Scheduled');
+UPDATE public.trips SET status = 'in_progress' WHERE status IN ('IN_PROGRESS', 'In Progress');
+UPDATE public.trips SET status = 'completed' WHERE status IN ('COMPLETED', 'Completed');
+UPDATE public.trips SET status = 'cancelled' WHERE status IN ('CANCELLED', 'Cancelled');
+UPDATE public.trips SET status = 'scheduled' WHERE status NOT IN ('scheduled', 'in_progress', 'completed', 'cancelled');
 ALTER TABLE public.trips ADD CONSTRAINT trips_status_check 
   CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled'));
-
--- Normalize status values
-UPDATE public.trips SET status = 'scheduled' WHERE status = 'SCHEDULED';
-UPDATE public.trips SET status = 'in_progress' WHERE status = 'IN_PROGRESS';
-UPDATE public.trips SET status = 'completed' WHERE status = 'COMPLETED';
-UPDATE public.trips SET status = 'cancelled' WHERE status = 'CANCELLED';
 
 -- Add origin_station_id for trips from other stations
 ALTER TABLE public.trips ADD COLUMN IF NOT EXISTS origin_station_id UUID REFERENCES public.stations(id);
 
--- Rename for consistency
-ALTER TABLE public.trips RENAME COLUMN volume_liters TO quantity_liters;
+-- Rename for consistency (only if needed)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'trips' AND column_name = 'volume_liters'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'trips' AND column_name = 'quantity_liters'
+  ) THEN
+    ALTER TABLE public.trips RENAME COLUMN volume_liters TO quantity_liters;
+  END IF;
+END $$;
 
 -- =============================================================================
 -- 7. UPDATE DELIVERIES TABLE TO MATCH SDS
 -- =============================================================================
 ALTER TABLE public.deliveries DROP CONSTRAINT IF EXISTS deliveries_fuel_type_check;
+
+-- Update fuel type values FIRST
+UPDATE public.deliveries SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95', 'petrol', 'Petrol');
+UPDATE public.deliveries SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97', 'premium', 'Premium');
+UPDATE public.deliveries SET fuel_type = 'diesel' WHERE fuel_type IN ('Diesel', 'DIESEL');
+UPDATE public.deliveries SET fuel_type = 'diesel' WHERE fuel_type NOT IN ('diesel', 'benzene_95', 'benzene_97');
+
+-- Now add constraint
 ALTER TABLE public.deliveries ADD CONSTRAINT deliveries_fuel_type_check 
   CHECK (fuel_type IN ('diesel', 'benzene_95', 'benzene_97'));
-
--- Update fuel type values
-UPDATE public.deliveries SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95');
-UPDATE public.deliveries SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97');
-UPDATE public.deliveries SET fuel_type = 'diesel' WHERE fuel_type = 'Diesel';
 
 -- Add status field per SDS
 ALTER TABLE public.deliveries ADD COLUMN IF NOT EXISTS status TEXT 
@@ -170,13 +237,16 @@ UPDATE public.deliveries SET quantity_liters = volume_delivered WHERE quantity_l
 -- 8. UPDATE SUBSCRIPTIONS TABLE
 -- =============================================================================
 ALTER TABLE public.subscriptions DROP CONSTRAINT IF EXISTS subscriptions_fuel_type_check;
+
+-- Update fuel type values FIRST
+UPDATE public.subscriptions SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95', 'petrol', 'Petrol');
+UPDATE public.subscriptions SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97', 'premium', 'Premium');
+UPDATE public.subscriptions SET fuel_type = 'diesel' WHERE fuel_type IN ('Diesel', 'DIESEL');
+UPDATE public.subscriptions SET fuel_type = NULL WHERE fuel_type NOT IN ('diesel', 'benzene_95', 'benzene_97');
+
+-- Now add constraint
 ALTER TABLE public.subscriptions ADD CONSTRAINT subscriptions_fuel_type_check 
   CHECK (fuel_type IS NULL OR fuel_type IN ('diesel', 'benzene_95', 'benzene_97'));
-
--- Update fuel type values
-UPDATE public.subscriptions SET fuel_type = 'benzene_95' WHERE fuel_type IN ('Benzene 95', 'petrol');
-UPDATE public.subscriptions SET fuel_type = 'benzene_97' WHERE fuel_type IN ('Benzene 97', 'premium');
-UPDATE public.subscriptions SET fuel_type = 'diesel' WHERE fuel_type = 'Diesel';
 
 -- =============================================================================
 -- 9. CREATE LOGISTICS ENGINE SUPPORT TABLE
@@ -218,7 +288,12 @@ CREATE TABLE IF NOT EXISTS public.fuel_status_history (
 ALTER TABLE public.fuel_status_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.logistics_config ENABLE ROW LEVEL SECURITY;
 
--- RLS policies
+-- RLS policies (drop first if exists)
+DROP POLICY IF EXISTS "Fuel history viewable by all" ON public.fuel_status_history;
+DROP POLICY IF EXISTS "Staff can insert fuel history" ON public.fuel_status_history;
+DROP POLICY IF EXISTS "Logistics config viewable by logistics and admin" ON public.logistics_config;
+DROP POLICY IF EXISTS "Admins can update logistics config" ON public.logistics_config;
+
 CREATE POLICY "Fuel history viewable by all" ON public.fuel_status_history
   FOR SELECT USING (true);
 CREATE POLICY "Staff can insert fuel history" ON public.fuel_status_history
@@ -252,6 +327,9 @@ CREATE TABLE IF NOT EXISTS public.email_notifications (
 );
 
 ALTER TABLE public.email_notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own email notifications" ON public.email_notifications;
+DROP POLICY IF EXISTS "System can insert email notifications" ON public.email_notifications;
 
 CREATE POLICY "Users can view own email notifications" ON public.email_notifications
   FOR SELECT USING (user_id = auth.uid());
@@ -288,6 +366,10 @@ CREATE TABLE IF NOT EXISTS public.pending_approvals (
 );
 
 ALTER TABLE public.pending_approvals ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Pending approvals viewable by relevant users" ON public.pending_approvals;
+DROP POLICY IF EXISTS "Staff can submit approvals" ON public.pending_approvals;
+DROP POLICY IF EXISTS "Managers can update approvals" ON public.pending_approvals;
 
 CREATE POLICY "Pending approvals viewable by relevant users" ON public.pending_approvals
   FOR SELECT USING (

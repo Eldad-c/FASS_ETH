@@ -502,24 +502,31 @@ export function StationMap({ stations }: StationMapProps) {
             
             {/* Fuel Status */}
             <div className="flex flex-wrap gap-1.5 mb-3">
-              {selectedStation.fuel_status.map((fuel) => (
-                <Badge
-                  key={fuel.id}
-                  variant="outline"
-                  className={`text-xs px-2 py-1 ${
-                    fuel.status === 'available'
-                      ? 'bg-green-500/15 text-green-700 border-green-500/30 dark:text-green-400'
-                      : fuel.status === 'low'
-                        ? 'bg-yellow-500/15 text-yellow-700 border-yellow-500/30 dark:text-yellow-400'
-                        : 'bg-red-500/15 text-red-700 border-red-500/30 dark:text-red-400'
-                  }`}
-                >
-                  {fuel.fuel_type.charAt(0).toUpperCase() + fuel.fuel_type.slice(1)}
-                  {fuel.price_per_liter && (
-                    <span className="ml-1 opacity-75">{fuel.price_per_liter} ETB</span>
-                  )}
-                </Badge>
-              ))}
+              {selectedStation.fuel_status.map((fuel) => {
+                // Format fuel type names per SDS
+                const fuelLabel = fuel.fuel_type === 'diesel' ? 'Diesel' 
+                  : fuel.fuel_type === 'benzene_95' ? 'Benzene 95'
+                  : fuel.fuel_type === 'benzene_97' ? 'Benzene 97'
+                  : fuel.fuel_type
+                return (
+                  <Badge
+                    key={fuel.id}
+                    variant="outline"
+                    className={`text-xs px-2 py-1 ${
+                      fuel.status === 'available'
+                        ? 'bg-green-500/15 text-green-700 border-green-500/30 dark:text-green-400'
+                        : fuel.status === 'low'
+                          ? 'bg-yellow-500/15 text-yellow-700 border-yellow-500/30 dark:text-yellow-400'
+                          : 'bg-red-500/15 text-red-700 border-red-500/30 dark:text-red-400'
+                    }`}
+                  >
+                    {fuelLabel}
+                    {fuel.price_per_liter && (
+                      <span className="ml-1 opacity-75">{fuel.price_per_liter} ETB</span>
+                    )}
+                  </Badge>
+                )
+              })}
             </div>
 
             {/* Actions */}

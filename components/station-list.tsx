@@ -192,7 +192,7 @@ export function StationList({ stations }: StationListProps) {
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {station.fuel_status.map((fuel) => {
-                    const config = fuelConfig[fuel.fuel_type as FuelType] || fuelConfig.petrol
+                    const config = fuelConfig[fuel.fuel_type as FuelType] || fuelConfig.diesel
                     const status = statusConfig[fuel.status]
                     const queue = queueConfig[fuel.queue_level || 'none']
                     const FuelIcon = config.icon
