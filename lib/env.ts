@@ -80,27 +80,37 @@ function buildFallbackEnv(): Env {
   }
 }
 
-function buildEnv(): Env {
-  try {
-    return validateEnv()
-  } catch (error) {
-    // Never silently misconfigure production.
-    if (process.env.NODE_ENV === 'production') {
-      throw error
-    }
+/**
+ * Lazy environment getter.
+ * Only validates when actually accessed at runtime, not at build time.
+ */
+function getEnv(): Env {
+  const effectiveSupabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || ''
+  const effectiveSupabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    ''
 
-    console.warn(
-      'Environment validation warning:',
-      error instanceof Error ? error.message : error
-    )
-
-    return buildFallbackEnv()
+  return {
+    supabase: {
+      url: effectiveSupabaseUrl,
+      anonKey: effectiveSupabaseAnonKey,
+      urlFallback: process.env.SUPABASE_URL,
+      anonKeyFallback: process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY,
+    },
+    gebetaMapsApiKey: process.env.NEXT_PUBLIC_GEBETA_MAPS_API_KEY,
+    devSupabaseRedirectUrl: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL,
   }
 }
 
 /**
  * Validated environment configuration.
- * - In production: throws if required vars are missing.
- * - In development: warns and falls back to best-effort values.
+ * Uses a getter to lazily evaluate at runtime instead of build time.
  */
-export const env: Env = buildEnv()
+export const env: Env = new Proxy({} as Env, {
+  get(_, prop) {
+    return getEnv()[prop as keyof Env]
+  }
+})
