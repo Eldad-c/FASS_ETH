@@ -4,6 +4,15 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { 
   BarChart3, 
   TrendingUp, 
@@ -11,7 +20,9 @@ import {
   Users, 
   Truck,
   RefreshCw,
-  Download
+  Download,
+  FileText,
+  Loader2
 } from 'lucide-react'
 
 interface AnalyticsData {
@@ -40,10 +51,27 @@ interface AnalyticsData {
   }
 }
 
+type ReportType = 'FUEL_TRENDS' | 'USER_ACTIVITY' | 'REPORT_STATS'
+
+interface SavedReport {
+  id: string
+  report_type: string
+  generated_at: string
+  date_range_start: string | null
+  date_range_end: string | null
+}
+
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Use Case 5: Generate Reports
+  const [reportType, setReportType] = useState<ReportType>('FUEL_TRENDS')
+  const [dateStart, setDateStart] = useState(() => new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
+  const [dateEnd, setDateEnd] = useState(() => new Date().toISOString().slice(0, 10))
+  const [generateLoading, setGenerateLoading] = useState(false)
+  const [timeoutMessage, setTimeoutMessage] = useState<string | null>(null)
+  const [savedReports, setSavedReports] = useState<SavedReport[]>([])
 
   const fetchAnalytics = async () => {
     setLoading(true)
@@ -60,9 +88,49 @@ export default function AdminAnalyticsPage() {
     }
   }
 
+  const fetchSavedReports = async () => {
+    try {
+      const res = await fetch('/api/analytics/reports')
+      if (res.ok) {
+        const { reports } = await res.json()
+        setSavedReports(reports || [])
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   useEffect(() => {
     fetchAnalytics()
+    fetchSavedReports()
   }, [])
+
+  const generateReport = async () => {
+    setGenerateLoading(true)
+    setTimeoutMessage(null)
+    try {
+      const res = await fetch('/api/analytics/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportType,
+          dateRangeStart: new Date(dateStart).toISOString(),
+          dateRangeEnd: new Date(dateEnd + 'T23:59:59').toISOString(),
+        }),
+      })
+      const json = await res.json()
+      if (json.timeout) {
+        setTimeoutMessage(json.message || 'Report will be emailed to you')
+        return
+      }
+      setTimeoutMessage(null)
+      fetchSavedReports()
+    } catch {
+      setError('Failed to generate report')
+    } finally {
+      setGenerateLoading(false)
+    }
+  }
 
   const exportData = () => {
     if (!data) return
@@ -121,6 +189,74 @@ export default function AdminAnalyticsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Use Case 5: Generate Report - reportType, dateRange, Generate, timeout/email */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Generate Report
+          </CardTitle>
+          <CardDescription>Select report type and date range. Long runs may be emailed.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-end gap-4">
+          <div className="space-y-2">
+            <Label>Report Type</Label>
+            <Select value={reportType} onValueChange={(v) => setReportType(v as ReportType)}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="FUEL_TRENDS">Fuel Trends</SelectItem>
+                <SelectItem value="USER_ACTIVITY">User Activity</SelectItem>
+                <SelectItem value="REPORT_STATS">Report Stats</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>From</Label>
+            <Input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>To</Label>
+            <Input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} />
+          </div>
+          <Button onClick={generateReport} disabled={generateLoading}>
+            {generateLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Generate Report
+          </Button>
+          {timeoutMessage && (
+            <p className="text-sm text-amber-600">{timeoutMessage}</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {savedReports.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Saved Reports</CardTitle>
+            <CardDescription>Export reports (exportReport)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {savedReports.map((r) => (
+                <li key={r.id} className="flex items-center justify-between py-2 border-b">
+                  <span className="text-sm">
+                    {r.report_type} — {new Date(r.generated_at).toLocaleString()}
+                  </span>
+                  <a
+                    href={`/api/analytics/reports/${r.id}?export=1`}
+                    download
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Export
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <p className="text-xs text-muted-foreground mb-6">
         Last updated: {new Date(data.timestamp).toLocaleString()}

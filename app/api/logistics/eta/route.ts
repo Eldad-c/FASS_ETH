@@ -99,6 +99,36 @@ export async function GET(request: Request) {
 
       const eta = calculateETA(distance)
 
+      // Use Case 6: [ETA < 30 Minutes AND Alert Not Sent] -> create Notification "Tanker Approaching"
+      if (eta <= 30) {
+        const { data: existing } = await supabase
+          .from('tanker_approaching_alerts')
+          .select('id')
+          .eq('trip_id', trip.id)
+          .eq('station_id', trip.destination_station_id)
+          .maybeSingle()
+        if (!existing) {
+          await supabase.from('tanker_approaching_alerts').insert({
+            trip_id: trip.id,
+            station_id: trip.destination_station_id,
+          })
+          const { data: staff } = await supabase
+            .from('station_staff')
+            .select('user_id')
+            .eq('station_id', trip.destination_station_id)
+          for (const s of staff || []) {
+            if (s.user_id) {
+              await supabase.from('notifications').insert({
+                user_id: s.user_id,
+                station_id: trip.destination_station_id,
+                title: 'Tanker Approaching',
+                message: `Tanker en route to ${destinationStation.name}. ETA ~${eta} minutes.`,
+              })
+            }
+          }
+        }
+      }
+
       return NextResponse.json({
         tripId: trip.id,
         tankerId: trip.tanker_id,

@@ -52,3 +52,24 @@ export function isLogistics(role: string | null | undefined): boolean {
 export function isDriver(role: string | null | undefined): boolean {
   return hasRole(role, ['driver'])
 }
+
+/**
+ * Checks if user has manager role
+ */
+export function isManager(role: string | null | undefined): boolean {
+  return hasRole(role, ['manager'])
+}
+
+/**
+ * Checks if user has IT support role
+ */
+export function isITSupport(role: string | null | undefined): boolean {
+  return hasRole(role, ['it_support'])
+}
+
+/**
+ * Checks if user can approve staff updates (admin or manager)
+ */
+export function canApprove(role: string | null | undefined): boolean {
+  return hasRole(role, ['admin', 'manager'])
+}

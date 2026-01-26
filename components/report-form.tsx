@@ -37,9 +37,14 @@ const queueLabels: Record<QueueLevel, { label: string; description: string; colo
   very_long: { label: 'Very Long Queue', description: '30+ vehicles', color: 'bg-red-500' },
 }
 
+type ReportMode = 'crowdsource' | 'incorrect'
+type IssueType = 'NO_FUEL' | 'INCORRECT_INFO' | 'OTHER'
+
 export function ReportForm({ stations }: ReportFormProps) {
   const router = useRouter()
+  const [mode, setMode] = useState<ReportMode>('crowdsource')
   const [stationId, setStationId] = useState('')
+  const [issueType, setIssueType] = useState<IssueType | ''>('')
   const [fuelType, setFuelType] = useState<FuelType | ''>('')
   const [status, setStatus] = useState<AvailabilityStatus | ''>('')
   const [queueLevel, setQueueLevel] = useState<QueueLevel>('none')
@@ -51,31 +56,36 @@ export function ReportForm({ stations }: ReportFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!stationId || !fuelType || !status) return
+    if (!stationId) return
+    if (mode === 'incorrect' && !issueType) return
+    if (mode === 'crowdsource' && (!fuelType || !status)) return
 
     setLoading(true)
     setError('')
 
-    const supabase = createClient()
-
-    const { error: submitError } = await supabase.from('user_reports').insert({
-      station_id: stationId,
-      fuel_type: fuelType,
-      reported_status: status,
-      reported_queue_level: queueLevel,
-      estimated_wait_time: estimatedWaitTime > 0 ? estimatedWaitTime : null,
-      comment: comment || null,
-    })
-
-    setLoading(false)
-
-    if (submitError) {
-      setError('Failed to submit report. Please try again.')
-    } else {
+    try {
+      const body: Record<string, unknown> = { mode, stationId, comment: comment || undefined }
+      if (mode === 'incorrect') {
+        body.issueType = issueType
+      } else {
+        body.fuel_type = fuelType
+        body.reported_status = status
+        body.reported_queue_level = queueLevel
+        body.estimated_wait_time = estimatedWaitTime > 0 ? estimatedWaitTime : null
+      }
+      const res = await fetch('/api/reports/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Failed to submit')
       setSuccess(true)
-      setTimeout(() => {
-        router.push('/')
-      }, 2000)
+      setTimeout(() => router.push('/'), 2000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit report. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -101,14 +111,29 @@ export function ReportForm({ stations }: ReportFormProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Fuel className="h-5 w-5" />
-          Crowdsource Report
+          {mode === 'incorrect' ? 'Report Incorrect Information' : 'Crowdsource Report'}
         </CardTitle>
         <CardDescription>
-          Help other drivers by reporting the current fuel situation at a station
+          {mode === 'incorrect'
+            ? 'Use Case 4: Report inaccuracies (No Fuel, Incorrect Price, Wrong Location). Staff will be notified.'
+            : 'Help other drivers by reporting the current fuel situation at a station'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label>Report type</Label>
+            <Select value={mode} onValueChange={(v) => setMode(v as ReportMode)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="crowdsource">Crowdsource status update</SelectItem>
+                <SelectItem value="incorrect">Report incorrect information</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="station">Select Station</Label>
             <Select value={stationId} onValueChange={setStationId}>
@@ -125,6 +150,35 @@ export function ReportForm({ stations }: ReportFormProps) {
             </Select>
           </div>
 
+          {mode === 'incorrect' ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="issueType">Issue type</Label>
+                <Select value={issueType} onValueChange={(v) => setIssueType(v as IssueType)}>
+                  <SelectTrigger id="issueType">
+                    <SelectValue placeholder="No Fuel, Incorrect Price, or Wrong Location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NO_FUEL">No Fuel</SelectItem>
+                    <SelectItem value="INCORRECT_INFO">Incorrect Price</SelectItem>
+                    <SelectItem value="OTHER">Wrong Location</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="comment">Description (required)</Label>
+                <Textarea
+                  id="comment"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Describe the inaccuracy..."
+                  rows={3}
+                  required
+                />
+              </div>
+            </>
+          ) : (
+          <>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="fuelType">Fuel Type</Label>
@@ -234,6 +288,8 @@ export function ReportForm({ stations }: ReportFormProps) {
               rows={3}
             />
           </div>
+          </>
+          )}
 
           {error && (
             <div className="flex items-center gap-2 text-destructive text-sm">
@@ -245,13 +301,18 @@ export function ReportForm({ stations }: ReportFormProps) {
           <Button
             type="submit"
             className="w-full"
-            disabled={loading || !stationId || !fuelType || !status}
+            disabled={
+              loading || !stationId ||
+              (mode === 'incorrect' ? !issueType || !comment?.trim() : !fuelType || !status)
+            }
           >
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Submitting Report...
+                Submitting...
               </>
+            ) : mode === 'incorrect' ? (
+              'Submit Report (staff will be notified)'
             ) : (
               'Submit Crowdsource Report'
             )}

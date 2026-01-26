@@ -52,11 +52,11 @@ export async function GET(request: Request) {
       .range(offset, offset + limit - 1)
 
     if (validatedLevel) {
-      query = query.eq('level', validatedLevel)
+      query = query.eq('log_level', validatedLevel)
     }
 
     if (validatedComponent) {
-      query = query.eq('component', validatedComponent)
+      query = query.eq('service', validatedComponent)
     }
 
     const { data: logs, count, error } = await query
@@ -108,8 +108,8 @@ export async function POST(request: Request) {
     const { data: log, error } = await supabase
       .from('system_logs')
       .insert({
-        level: level.toUpperCase(),
-        component,
+        log_level: level.toUpperCase(),
+        service: component,
         message,
         metadata: metadata || null,
       })

@@ -1,0 +1,110 @@
+{
+  "common": {
+    "appName": "የነዳጅ ማግኘት ስርዓት",
+    "welcome": "እንኳን ደህና መጡ",
+    "loading": "በመጫን ላይ...",
+    "error": "ስህተት",
+    "success": "ተሳክቷል",
+    "save": "አስቀምጥ",
+    "cancel": "ተወው",
+    "delete": "ሰርዝ",
+    "edit": "አርም",
+    "view": "እይ",
+    "search": "ፈልግ",
+    "filter": "አጣር",
+    "submit": "ላክ",
+    "close": "ዝጋ"
+  },
+  "navigation": {
+    "home": "መነሻ",
+    "stations": "መግቢያዎች",
+    "reports": "ሪፖርቶች",
+    "admin": "አስተዳዳሪ",
+    "staff": "ሰራተኛ",
+    "logistics": "ሎጂስቲክስ",
+    "driver": "አሽከርካሪ",
+    "manager": "አስተዳዳሪ",
+    "itSupport": "IT ድጋፍ",
+    "login": "ግባ",
+    "logout": "ውጣ",
+    "settings": "ቅንብሮች"
+  },
+  "fuel": {
+    "available": "ይገኛል",
+    "low": "ዝቅተኛ ክምችት",
+    "outOfStock": "አልተገኘም",
+    "petrol": "ፔትሮል",
+    "diesel": "ዲዘል",
+    "premium": "ፕሪሚየም",
+    "kerosene": "ኬሮሲን"
+  },
+  "station": {
+    "name": "የመግቢያ ስም",
+    "address": "አድራሻ",
+    "phone": "ስልክ",
+    "hours": "የስራ ሰዓት",
+    "status": "ሁኔታ",
+    "lastUpdated": "የመጨረሻ ዝመና",
+    "trustScore": "የመተማመን ነጥብ",
+    "queueLevel": "የረድፍ ደረጃ",
+    "noQueue": "ረድፍ የለም",
+    "shortQueue": "አጭር ረድፍ",
+    "mediumQueue": "መካከለኛ ረድፍ",
+    "longQueue": "ረጅም ረድፍ",
+    "veryLongQueue": "በጣም ረጅም ረድፍ"
+  },
+  "reports": {
+    "title": "የነዳጅ ሁኔታ ሪፖርት",
+    "description": "የነዳጅ ሁኔታን በሪፖርት ማድረግ ለሌሎች አሽከርካሪዎች ይረዳል",
+    "selectStation": "መግቢያ ይምረጡ",
+    "fuelType": "የነዳጅ አይነት",
+    "availability": "መገኘት",
+    "queueLevel": "የረድፍ ደረጃ",
+    "estimatedWait": "የተገመተ የጥበቃ ጊዜ",
+    "comments": "ተጨማሪ አስተያየቶች",
+    "submitReport": "ሪፖርት ላክ",
+    "thankYou": "እናመሰግናለን!",
+    "reportSubmitted": "ሪፖርትዎ ተልኳል እና ለሌሎች አሽከርካሪዎች ነዳጅ ለማግኘት ይረዳል።"
+  },
+  "auth": {
+    "login": "ግባ",
+    "signUp": "ተመዝግብ",
+    "email": "ኢሜይል",
+    "password": "የይለፍ ቃል",
+    "forgotPassword": "የይለፍ ቃል ረሳኽ?",
+    "rememberMe": "አስታውሰኝ",
+    "twoFactor": "ሁለት-ደረጃ ማረጋገጫ",
+    "enterCode": "6-አሃዝ ኮድ ያስገቡ",
+    "backupCode": "የመጠባበቂያ ኮድ ይጠቀሙ",
+    "setup2FA": "2FA ያዘጋጁ",
+    "verify2FA": "2FA ያረጋግጡ",
+    "disable2FA": "2FA ያብረግጡ"
+  },
+  "approval": {
+    "pending": "የጠበቃ ምርመራ",
+    "approved": "ተጸድቋል",
+    "rejected": "ተቀባይነት አላገኘም",
+    "approve": "ጸድቅ",
+    "reject": "አትቀበል",
+    "reviewNotes": "የግምገማ ማስታወሻዎች",
+    "submittedBy": "የላከው",
+    "submittedAt": "የተላከበት ቀን",
+    "noPendingApprovals": "የጠበቃ ምርመራዎች የሉም"
+  },
+  "notifications": {
+    "title": "ማሳወቂያዎች",
+    "noNotifications": "ማሳወቂያዎች የሉም",
+    "markAsRead": "እንደተነበበ ምልክት አድርግ",
+    "lowStock": "ዝቅተኛ ክምችት ማስጠንቀቂያ",
+    "deliveryDelay": "የመላኪያ ማግኘት ማስጠንቀቂያ",
+    "updateApproved": "ዝመና ተጸድቋል",
+    "updateRejected": "ዝመና ተቀባይነት አላገኘም"
+  },
+  "history": {
+    "title": "የታሪክ መገኘት",
+    "last7Days": "የመጨረሻ 7 ቀናት",
+    "noHistory": "የታሪክ መረጃ የለም",
+    "date": "ቀን",
+    "status": "ሁኔታ"
+  }
+}

@@ -4,6 +4,7 @@ import { logLevelSchema } from '@/lib/validations'
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
 import { env } from '@/lib/env'
+import os from 'os'
 
 const systemLogSchema = z.object({
   level: logLevelSchema,
@@ -34,7 +35,11 @@ export async function GET() {
       supabase.from('user_reports').select('*', { count: 'exact', head: true }),
     ])
 
-    // Log system health check (non-blocking)
+    // getMetrics: CPU, Memory, DB_Connections (SDS Use Case 7 - Maintain System Health)
+    const loadAvg = os.loadavg()
+    const mem = process.memoryUsage()
+
+    // Log system health check (non-blocking); system_logs uses log_level and service (002 schema)
     const logData = {
       level: 'INFO' as const,
       component: 'health_check',
@@ -47,10 +52,14 @@ export async function GET() {
 
     const logValidation = systemLogSchema.safeParse(logData)
     if (logValidation.success) {
-      // Don't fail health check if logging fails (non-blocking)
       void (async () => {
         try {
-          await supabase.from('system_logs').insert(logValidation.data)
+          await supabase.from('system_logs').insert({
+            log_level: logValidation.data.level,
+            service: logValidation.data.component,
+            message: logValidation.data.message,
+            metadata: logValidation.data.metadata ?? null,
+          })
         } catch (err: unknown) {
           console.error('Failed to log health check:', err)
         }
@@ -61,6 +70,12 @@ export async function GET() {
       status: dbError ? 'degraded' : 'healthy',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
+      // getMetrics(CPU, Memory, DB_Connections) per SDS Use Case 7
+      metrics: {
+        CPU: { load1: loadAvg[0], load5: loadAvg[1], load15: loadAvg[2] },
+        Memory: { rss: mem.rss, heapTotal: mem.heapTotal, heapUsed: mem.heapUsed },
+        DB_Connections: 'N/A',
+      },
       services: {
         database: {
           status: dbError ? 'error' : 'healthy',

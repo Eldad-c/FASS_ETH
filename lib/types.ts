@@ -1,5 +1,5 @@
-// User roles - expanded for logistics and drivers
-export type UserRole = 'public' | 'staff' | 'admin' | 'driver' | 'logistics'
+// User roles - expanded for logistics, drivers, managers, and IT support
+export type UserRole = 'public' | 'staff' | 'admin' | 'driver' | 'logistics' | 'manager' | 'it_support'
 
 // Fuel types and availability status
 export type FuelType = 'petrol' | 'diesel' | 'premium'
@@ -15,6 +15,12 @@ export type TankerStatus = 'available' | 'in_transit' | 'maintenance' | 'offline
 // System log levels
 export type LogLevel = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
 
+// Approval status
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+// Language preference
+export type LanguagePreference = 'en' | 'am'
+
 // Profile type
 export interface Profile {
   id: string
@@ -23,6 +29,8 @@ export interface Profile {
   role: UserRole
   assigned_station_id: string | null
   phone?: string | null
+  two_factor_enabled?: boolean
+  language_preference?: LanguagePreference
   created_at: string
   updated_at: string
 }
@@ -37,6 +45,7 @@ export interface Station {
   phone: string | null
   operating_hours: string | null
   is_active: boolean
+  manager_id?: string | null
   created_at: string
   updated_at: string
 }
@@ -51,6 +60,12 @@ export interface FuelStatus {
   queue_level: QueueLevel
   last_updated_by: string | null
   updated_at: string
+  trust_score?: number | null
+  approval_status?: ApprovalStatus
+  submitted_by?: string | null
+  approved_by?: string | null
+  approved_at?: string | null
+  rejection_reason?: string | null
   station?: Station
 }
 
@@ -209,12 +224,60 @@ export interface DeliveryAnalytics {
 }
 
 // Dashboard types for role-based access
-export type DashboardType = 'public' | 'staff' | 'admin' | 'logistics' | 'driver'
+export type DashboardType = 'public' | 'staff' | 'admin' | 'logistics' | 'driver' | 'manager' | 'it_support'
 
 export interface DashboardAccess {
   role: UserRole
   allowedDashboards: DashboardType[]
   defaultDashboard: DashboardType
+}
+
+// Historical fuel status
+export interface FuelStatusHistory {
+  id: string
+  station_id: string
+  fuel_type: string
+  is_available: boolean
+  status: AvailabilityStatus
+  queue_level: QueueLevel | null
+  price_per_liter: number | null
+  trust_score: number | null
+  updated_by: string | null
+  source_type: 'STAFF' | 'USER_REPORT' | 'SYSTEM'
+  recorded_at: string
+  created_at: string
+}
+
+// Pending approval
+export interface PendingApproval {
+  id: string
+  fuel_status_id: string
+  station_id: string
+  submitted_by: string
+  manager_id: string | null
+  status: ApprovalStatus
+  submitted_at: string
+  reviewed_at: string | null
+  review_notes: string | null
+  created_at: string
+  fuel_status?: FuelStatus
+  station?: Station
+  submitter?: Profile
+  manager?: Profile
+}
+
+// Email notification
+export interface EmailNotification {
+  id: string
+  user_id: string | null
+  notification_id: string | null
+  email_address: string
+  subject: string
+  body: string
+  status: 'PENDING' | 'SENT' | 'FAILED' | 'BOUNCED'
+  sent_at: string | null
+  error_message: string | null
+  created_at: string
 }
 
 export const ROLE_DASHBOARD_ACCESS: Record<UserRole, DashboardAccess> = {
@@ -230,7 +293,7 @@ export const ROLE_DASHBOARD_ACCESS: Record<UserRole, DashboardAccess> = {
   },
   admin: {
     role: 'admin',
-    allowedDashboards: ['public', 'staff', 'admin', 'logistics'],
+    allowedDashboards: ['public', 'staff', 'admin', 'logistics', 'manager', 'it_support'],
     defaultDashboard: 'admin',
   },
   logistics: {
@@ -242,5 +305,15 @@ export const ROLE_DASHBOARD_ACCESS: Record<UserRole, DashboardAccess> = {
     role: 'driver',
     allowedDashboards: ['public', 'driver'],
     defaultDashboard: 'driver',
+  },
+  manager: {
+    role: 'manager',
+    allowedDashboards: ['public', 'manager'],
+    defaultDashboard: 'manager',
+  },
+  it_support: {
+    role: 'it_support',
+    allowedDashboards: ['public', 'it_support'],
+    defaultDashboard: 'it_support',
   },
 }

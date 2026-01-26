@@ -28,14 +28,27 @@ import {
   RefreshCw,
   Users,
   Home,
+  Truck,
 } from 'lucide-react'
 import Link from 'next/link'
 import type { Profile, StationWithFuelStatus, UserReport, FuelType, AvailabilityStatus, QueueLevel } from '@/lib/types'
+
+interface IncomingTrip {
+  id: string
+  fuel_type: string
+  volume_liters?: number
+  quantity_liters?: number
+  status: string
+  estimated_arrival: string | null
+  tankers?: { plate_number?: string; status?: string } | null
+  destination_station?: { name?: string; address?: string } | null
+}
 
 interface StaffDashboardProps {
   profile: Profile
   station: StationWithFuelStatus
   pendingReports: UserReport[]
+  incomingDeliveries?: IncomingTrip[]
 }
 
 const fuelIcons: Record<FuelType, typeof Droplet> = {
@@ -78,7 +91,7 @@ const queueColors: Record<QueueLevel, string> = {
   very_long: 'text-red-600',
 }
 
-export function StaffDashboard({ profile, station, pendingReports: initialReports }: StaffDashboardProps) {
+export function StaffDashboard({ profile, station, pendingReports: initialReports, incomingDeliveries = [] }: StaffDashboardProps) {
   const router = useRouter()
   const [fuelStatuses, setFuelStatuses] = useState(station.fuel_status)
   const [pendingReports, setPendingReports] = useState(initialReports)
@@ -106,34 +119,69 @@ export function StaffDashboard({ profile, station, pendingReports: initialReport
     const currentFuel = fuelStatuses.find(f => f.id === fuelStatusId)
     if (!currentFuel) return
 
+    // Check if approval is required (check if station has a manager)
+    const { data: station } = await supabase
+      .from('stations')
+      .select('manager_id')
+      .eq('id', currentFuel.station_id)
+      .single()
+
+    const requiresApproval = !!station?.manager_id
+
     const updateData: Record<string, string | number | null> = {
-      last_updated_by: profile.id,
-      updated_at: new Date().toISOString(),
+      updated_by: profile.id,
+      submitted_by: profile.id,
+      last_updated: new Date().toISOString(),
+      approval_status: requiresApproval ? 'PENDING' : 'APPROVED',
     }
 
     if (updates.status !== undefined) updateData.status = updates.status
     if (updates.price !== undefined) updateData.price_per_liter = updates.price
     if (updates.queue_level !== undefined) updateData.queue_level = updates.queue_level
 
-    const { error } = await supabase
+    // Update fuel status
+    const { error: updateError } = await supabase
       .from('fuel_status')
       .update(updateData)
       .eq('id', fuelStatusId)
 
-    if (!error) {
-      setFuelStatuses((prev) =>
-        prev.map((fs) =>
-          fs.id === fuelStatusId
-            ? {
-                ...fs,
-                ...(updates.status !== undefined && { status: updates.status }),
-                ...(updates.price !== undefined && { price_per_liter: updates.price }),
-                ...(updates.queue_level !== undefined && { queue_level: updates.queue_level }),
-              }
-            : fs
-        )
-      )
+    if (updateError) {
+      console.error('Error updating fuel status:', updateError)
+      setUpdating(null)
+      return
     }
+
+    // If approval is required, create pending approval record
+    if (requiresApproval && station.manager_id) {
+      const { error: approvalError } = await supabase
+        .from('pending_approvals')
+        .insert({
+          fuel_status_id: fuelStatusId,
+          station_id: currentFuel.station_id,
+          submitted_by: profile.id,
+          manager_id: station.manager_id,
+          status: 'PENDING',
+        })
+
+      if (approvalError) {
+        console.error('Error creating pending approval:', approvalError)
+      }
+    }
+
+    // Update local state
+    setFuelStatuses((prev) =>
+      prev.map((fs) =>
+        fs.id === fuelStatusId
+          ? {
+              ...fs,
+              ...(updates.status !== undefined && { status: updates.status }),
+              ...(updates.price !== undefined && { price_per_liter: updates.price }),
+              ...(updates.queue_level !== undefined && { queue_level: updates.queue_level }),
+              approval_status: requiresApproval ? 'PENDING' : 'APPROVED',
+            }
+          : fs
+      )
+    )
 
     setUpdating(null)
   }
@@ -209,6 +257,38 @@ export function StaffDashboard({ profile, station, pendingReports: initialReport
             </div>
           </CardContent>
         </Card>
+
+        {/* Use Case 2: displayDashboard(alerts) - Incoming Deliveries from checkIncomingDeliveries */}
+        {incomingDeliveries.length > 0 && (
+          <Card className="mb-6 border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Truck className="h-5 w-5" />
+                Incoming Deliveries
+              </CardTitle>
+              <CardDescription>Trips en route to this station</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {incomingDeliveries.map((t) => (
+                  <li key={t.id} className="flex flex-wrap items-center gap-2 py-2 border-b text-sm last:border-0">
+                    <span className="font-medium">
+                      {(t.tankers as { plate_number?: string })?.plate_number || 'Tanker'} — {(t.volume_liters ?? (t as { quantity_liters?: number }).quantity_liters ?? 0).toLocaleString()}L {t.fuel_type}
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {t.status === 'IN_PROGRESS' ? 'En route' : 'Scheduled'}
+                    </Badge>
+                    {t.estimated_arrival && (
+                      <span className="text-muted-foreground text-xs">
+                        ETA: {new Date(t.estimated_arrival).toLocaleString()}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Fuel Status Cards */}

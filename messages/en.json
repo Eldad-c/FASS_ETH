@@ -1,0 +1,110 @@
+{
+  "common": {
+    "appName": "Fuel Availability System",
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "navigation": {
+    "home": "Home",
+    "stations": "Stations",
+    "reports": "Reports",
+    "admin": "Admin",
+    "staff": "Staff",
+    "logistics": "Logistics",
+    "driver": "Driver",
+    "manager": "Manager",
+    "itSupport": "IT Support",
+    "login": "Login",
+    "logout": "Logout",
+    "settings": "Settings"
+  },
+  "fuel": {
+    "available": "Available",
+    "low": "Low Stock",
+    "outOfStock": "Out of Stock",
+    "petrol": "Petrol",
+    "diesel": "Diesel",
+    "premium": "Premium",
+    "kerosene": "Kerosene"
+  },
+  "station": {
+    "name": "Station Name",
+    "address": "Address",
+    "phone": "Phone",
+    "hours": "Operating Hours",
+    "status": "Status",
+    "lastUpdated": "Last Updated",
+    "trustScore": "Trust Score",
+    "queueLevel": "Queue Level",
+    "noQueue": "No Queue",
+    "shortQueue": "Short Queue",
+    "mediumQueue": "Medium Queue",
+    "longQueue": "Long Queue",
+    "veryLongQueue": "Very Long Queue"
+  },
+  "reports": {
+    "title": "Report Fuel Status",
+    "description": "Help other drivers by reporting the current fuel availability",
+    "selectStation": "Select Station",
+    "fuelType": "Fuel Type",
+    "availability": "Availability",
+    "queueLevel": "Queue Level",
+    "estimatedWait": "Estimated Wait Time",
+    "comments": "Additional Comments",
+    "submitReport": "Submit Report",
+    "thankYou": "Thank You!",
+    "reportSubmitted": "Your report has been submitted and will help other drivers find fuel."
+  },
+  "auth": {
+    "login": "Login",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "twoFactor": "Two-Factor Authentication",
+    "enterCode": "Enter 6-digit code",
+    "backupCode": "Use Backup Code",
+    "setup2FA": "Set Up 2FA",
+    "verify2FA": "Verify 2FA",
+    "disable2FA": "Disable 2FA"
+  },
+  "approval": {
+    "pending": "Pending Approval",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "approve": "Approve",
+    "reject": "Reject",
+    "reviewNotes": "Review Notes",
+    "submittedBy": "Submitted By",
+    "submittedAt": "Submitted At",
+    "noPendingApprovals": "No pending approvals"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noNotifications": "No notifications",
+    "markAsRead": "Mark as Read",
+    "lowStock": "Low Stock Alert",
+    "deliveryDelay": "Delivery Delay Alert",
+    "updateApproved": "Update Approved",
+    "updateRejected": "Update Rejected"
+  },
+  "history": {
+    "title": "Historical Availability",
+    "last7Days": "Last 7 Days",
+    "noHistory": "No historical data available",
+    "date": "Date",
+    "status": "Status"
+  }
+}

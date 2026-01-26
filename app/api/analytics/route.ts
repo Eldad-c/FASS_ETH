@@ -48,7 +48,7 @@ export async function GET(request: Request) {
         const { data: pendingReports } = await supabase
           .from('user_reports')
           .select('*')
-          .eq('status', 'pending')
+          .in('status', ['pending', 'OPEN'])
 
         // Calculate fuel availability by type
         const fuelByType = {

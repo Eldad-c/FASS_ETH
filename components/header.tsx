@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/types'
 import { hasRole, normalizeRole } from '@/lib/role-helpers'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 export function Header() {
   const pathname = usePathname()
@@ -147,6 +148,7 @@ export function Header() {
             <Button asChild variant={isActive('/subscribe') ? 'secondary' : 'ghost'} size="sm" className="text-sm">
               <Link href="/subscribe">Alerts</Link>
             </Button>
+            <LanguageSwitcher />
             {user && profile ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

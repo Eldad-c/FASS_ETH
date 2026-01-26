@@ -169,14 +169,18 @@ export default function DriverPage() {
       })
       .eq('id', currentTrip.id)
 
-    // Create delivery record
+    // Create delivery record (SDS Delivery: volume_delivered, delivery_timestamp, status)
+    const volume = (currentTrip as { volume_liters?: number }).volume_liters ?? (currentTrip as { quantity_liters?: number }).quantity_liters ?? 0
     await supabase.from('deliveries').insert({
       trip_id: currentTrip.id,
       station_id: currentTrip.destination_station_id,
       fuel_type: currentTrip.fuel_type,
-      quantity_liters: currentTrip.quantity_liters,
-      status: 'delivered',
-      delivered_at: new Date().toISOString(),
+      volume_delivered: volume,
+      delivery_timestamp: new Date().toISOString(),
+      received_by: null,
+      signature_confirmed: false,
+      notes: null,
+      status: 'DELIVERED',
     })
 
     if (tanker) {
@@ -291,7 +295,7 @@ export default function DriverPage() {
                   </div>
                   <div className="p-3 rounded-lg bg-muted/50">
                     <p className="text-xs text-muted-foreground">Quantity</p>
-                    <p className="font-semibold">{currentTrip.quantity_liters.toLocaleString()}L</p>
+                    <p className="font-semibold">{(currentTrip.volume_liters ?? (currentTrip as { quantity_liters?: number }).quantity_liters ?? 0).toLocaleString()}L</p>
                   </div>
                 </div>
 
@@ -361,7 +365,7 @@ export default function DriverPage() {
                         <div>
                           <p className="font-medium">{trip.destination_station?.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {trip.quantity_liters.toLocaleString()}L {trip.fuel_type}
+                            {((trip as { volume_liters?: number }).volume_liters ?? (trip as { quantity_liters?: number }).quantity_liters ?? 0).toLocaleString()}L {trip.fuel_type}
                           </p>
                         </div>
                       </div>

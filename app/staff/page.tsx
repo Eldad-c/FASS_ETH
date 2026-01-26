@@ -62,8 +62,17 @@ export default async function StaffPage() {
     .from('user_reports')
     .select('*')
     .eq('station_id', profile.assigned_station_id)
-    .eq('status', 'pending')
+    .in('status', ['pending', 'OPEN'])
     .order('created_at', { ascending: false })
+    .limit(10)
+
+  // Use Case 2: checkIncomingDeliveries(stationID) -> LogisticsEngine -> Delivery
+  const { data: incomingTrips } = await supabase
+    .from('trips')
+    .select('*, tankers(plate_number, status), destination_station:stations!trips_destination_station_id_fkey(name, address)')
+    .eq('destination_station_id', profile.assigned_station_id)
+    .in('status', ['SCHEDULED', 'IN_PROGRESS'])
+    .order('estimated_arrival', { ascending: true })
     .limit(10)
 
   return (
@@ -71,6 +80,7 @@ export default async function StaffPage() {
       profile={profile}
       station={station}
       pendingReports={reportsError ? [] : reports || []}
+      incomingDeliveries={incomingTrips || []}
     />
   )
 }
