@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Users, FileText, Fuel, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Building2, Users, FileText, Fuel, TrendingUp, AlertTriangle, UserX } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function AdminDashboardPage() {
@@ -9,12 +9,14 @@ export default async function AdminDashboardPage() {
   const [
     { count: stationCount },
     { count: userCount },
+    { count: bannedUserCount },
     { count: pendingReportCount },
     { data: recentReports },
     { data: fuelStats },
   ] = await Promise.all([
     supabase.from('stations').select('*', { count: 'exact', head: true }).eq('is_active', true),
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('users').select('*', { count: 'exact', head: true }).eq('is_banned', true),
     supabase.from('user_reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase
       .from('user_reports')
@@ -41,6 +43,12 @@ export default async function AdminDashboardPage() {
       value: userCount || 0,
       icon: Users,
       href: '/admin/users',
+    },
+    {
+      title: 'Banned Users',
+      value: bannedUserCount || 0,
+      icon: UserX,
+      href: '/admin/users?filter=banned',
     },
     {
       title: 'Pending Reports',
