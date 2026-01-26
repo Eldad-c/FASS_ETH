@@ -202,7 +202,7 @@ export default function DriverPage() {
       .eq('id', currentTrip.id)
 
     // Create delivery record (SDS Delivery: volume_delivered, delivery_timestamp, status)
-    const volume = (currentTrip as { volume_liters?: number }).volume_liters ?? (currentTrip as { quantity_liters?: number }).quantity_liters ?? 0
+    const volume = currentTrip.quantity_liters ?? 0
     await supabase.from('deliveries').insert({
       trip_id: currentTrip.id,
       station_id: currentTrip.destination_station_id,
@@ -350,7 +350,7 @@ export default function DriverPage() {
                   </div>
                   <div className="p-3 rounded-lg bg-muted/50">
                     <p className="text-xs text-muted-foreground">Quantity</p>
-                    <p className="font-semibold">{(currentTrip.volume_liters ?? (currentTrip as { quantity_liters?: number }).quantity_liters ?? 0).toLocaleString()}L</p>
+                    <p className="font-semibold">{(currentTrip.quantity_liters ?? 0).toLocaleString()}L</p>
                   </div>
                 </div>
 
@@ -420,7 +420,7 @@ export default function DriverPage() {
                         <div>
                           <p className="font-medium">{trip.destination_station?.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {((trip as { volume_liters?: number }).volume_liters ?? (trip as { quantity_liters?: number }).quantity_liters ?? 0).toLocaleString()}L {trip.fuel_type}
+                            {(trip.quantity_liters ?? 0).toLocaleString()}L {trip.fuel_type}
                           </p>
                         </div>
                       </div>
