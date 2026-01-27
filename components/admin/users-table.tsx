@@ -49,6 +49,8 @@ const roleColors: Record<UserRole, string> = {
   admin: 'bg-primary/15 text-primary border-primary/30',
   driver: 'bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-400',
   logistics: 'bg-green-500/15 text-green-700 border-green-500/30 dark:text-green-400',
+  manager: 'bg-yellow-500/15 text-yellow-700 border-yellow-500/30 dark:text-yellow-400',
+  it_support: 'bg-gray-500/15 text-gray-700 border-gray-500/30 dark:text-gray-400',
 }
 
 export function UsersTable({ users: initialUsers, stations, page, limit, total }: UsersTableProps) {

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { MapPin, Phone, Clock, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Header } from '@/components/header'
+import type { FuelStatusHistory } from '@/lib/types'
 
 export default async function StationDetailPage({
   params,
@@ -49,7 +50,7 @@ export default async function StationDetailPage({
     }
     acc[date].push(record)
     return acc
-  }, {} as Record<string, typeof history>)
+  }, {} as Record<string, FuelStatusHistory[]>)
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -159,7 +160,7 @@ export default async function StationDetailPage({
                         })}
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {records.map((record: any) => {
+                        {(records as FuelStatusHistory[]).map((record: FuelStatusHistory) => {
                           const statusIcon =
                             record.is_available || record.status === 'available' ? (
                               <CheckCircle className="h-4 w-4 text-green-600" />
