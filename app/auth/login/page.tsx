@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Fuel } from 'lucide-react'
+import { hasRole } from '@/lib/role-helpers'
 
 export default function Page() {
   const [email, setEmail] = useState('')
@@ -85,8 +86,8 @@ export default function Page() {
           throw profileError
         }
 
-        // If 2FA is enabled, require verification
-        if (profile?.two_factor_enabled && (profile.role === 'ADMIN' || profile.role === 'MANAGER')) {
+        // If 2FA is enabled for admin or manager, require verification
+        if (profile?.two_factor_enabled && hasRole(profile.role, ['admin', 'manager'])) {
           setRequires2FA(true)
           setUserId(data.user.id)
           setIsLoading(false)
@@ -229,7 +230,7 @@ export default function Page() {
               ) : (
                 <form onSubmit={handle2FAVerification}>
                   <div className="flex flex-col gap-6">
-                    <div className="text-center">
+                    <div className.tsx="text-center">
                       <p className="text-sm text-muted-foreground mb-4">
                         Two-factor authentication is required
                       </p>
