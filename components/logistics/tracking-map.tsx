@@ -10,7 +10,6 @@ import type * as L from 'leaflet'
 
 interface TankerWithTrip extends Tanker {
   active_trip?: Trip & { destination_station?: { name: string; latitude: number; longitude: number; address?: string } }
-  driver?: { full_name?: string }
 }
 
 interface TrackingMapProps {

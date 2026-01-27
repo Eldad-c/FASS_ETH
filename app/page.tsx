@@ -9,28 +9,10 @@ import MapLoader from '@/components/map-loader' // Import the new MapLoader comp
 export default async function HomePage() {
   const supabase = await createClient()
 
-  // Updated query to fetch SDS-aligned fields
+  // Updated query to fetch all fields to match the type
   const { data: stations } = await supabase
     .from('stations')
-    .select(`
-      id,
-      name,
-      address,
-      latitude,
-      longitude,
-      operating_hours,
-      is_active,
-      estimated_queue_level,
-      next_delivery_eta,
-      fuel_status (
-        id,
-        fuel_type,
-        status,
-        queue_level,
-        price_per_liter,
-        updated_at
-      )
-    `)
+    .select('*, fuel_status(*)')
     .eq('is_active', true)
     .order('name')
 

@@ -11,7 +11,6 @@ import type { Tanker, Trip, TankerStatus } from '@/lib/types'
 
 interface TankerWithTrip extends Tanker {
   active_trip?: Trip & { destination_station?: { name: string; latitude: number; longitude: number; address?: string } }
-  driver?: { full_name?: string }
 }
 
 export default function TrackingPage() {

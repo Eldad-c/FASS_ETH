@@ -230,7 +230,7 @@ export default function Page() {
               ) : (
                 <form onSubmit={handle2FAVerification}>
                   <div className="flex flex-col gap-6">
-                    <div className.tsx="text-center">
+                    <div className="text-center">
                       <p className="text-sm text-muted-foreground mb-4">
                         Two-factor authentication is required
                       </p>
