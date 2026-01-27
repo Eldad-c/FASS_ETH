@@ -90,6 +90,7 @@ export function StationMap({ stations }: StationMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+    const L = require('leaflet');
 
     map.eachLayer((layer) => {
       if (layer instanceof L.Marker) {
@@ -97,7 +98,6 @@ export function StationMap({ stations }: StationMapProps) {
       }
     });
 
-    const L = require('leaflet');
     stations.forEach(station => {
       const isAvailable = station.fuel_status.some(f => f.status === 'available');
       
