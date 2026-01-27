@@ -74,7 +74,12 @@ export function StationList({ stations }: StationListProps) {
   const fuelFilter = searchParams.get('fuel') || 'all'
 
   const filteredStations = stations.filter((station) => {
-    if (fuelFilter === 'all') return true
+    if (fuelFilter === 'all') return true;
+    if (fuelFilter === 'benzene') {
+      return station.fuel_status.some(
+        (fs) => (fs.fuel_type === 'benzene_95' || fs.fuel_type === 'benzene_97') && fs.status !== 'out_of_stock'
+      );
+    }
     return station.fuel_status.some(
       (fs) => fs.fuel_type === fuelFilter && fs.status !== 'out_of_stock'
     )

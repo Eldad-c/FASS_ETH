@@ -8,8 +8,8 @@ export type FuelTypeCode = 'diesel' | 'benzene_95' | 'benzene_97'
 
 export const FUEL_TYPE_LABELS: Record<FuelTypeCode, string> = {
   diesel: 'Diesel',
-  benzene_95: 'Benzene 95',
-  benzene_97: 'Benzene 97',
+  benzene_95: 'Benzene',
+  benzene_97: 'Benzene',
 }
 
 /**
