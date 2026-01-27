@@ -47,7 +47,7 @@ export default function Page() {
         options: {
           emailRedirectTo:
             env.devSupabaseRedirectUrl ||
-            `${window.location.origin}/`,
+            `${window.location.origin}/auth/login?verified=true`,
           data: {
             full_name: fullName,
           },

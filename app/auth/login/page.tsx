@@ -13,9 +13,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Fuel } from 'lucide-react'
+import { Fuel, CheckCircle } from 'lucide-react'
+import { hasRole } from '@/lib/role-helpers'
 
 export default function Page() {
   const [email, setEmail] = useState('')
@@ -25,7 +26,20 @@ export default function Page() {
   const [requires2FA, setRequires2FA] = useState(false)
   const [twoFactorToken, setTwoFactorToken] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
+  const [tempCredentials, setTempCredentials] = useState<{ email: string; password: string } | null>(null)
+  const [showVerifiedMessage, setShowVerifiedMessage] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Check for email verification success
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+      setShowVerifiedMessage(true)
+      // Auto-hide after 5 seconds
+      const timer = setTimeout(() => setShowVerifiedMessage(false), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const checkUser = async () => {
@@ -52,6 +66,10 @@ export default function Page() {
           router.push('/logistics')
         } else if (role === 'driver') {
           router.push('/driver')
+        } else if (role === 'manager') {
+          router.push('/manager')
+        } else if (role === 'it_support') {
+          router.push('/it-support')
         } else {
           router.push('/')
         }
@@ -85,10 +103,13 @@ export default function Page() {
           throw profileError
         }
 
-        // If 2FA is enabled, require verification
-        if (profile?.two_factor_enabled && (profile.role === 'ADMIN' || profile.role === 'MANAGER')) {
+        // If 2FA is enabled for admin/manager, sign out and require verification
+        if (profile?.two_factor_enabled && hasRole(profile.role, ['admin', 'manager'])) {
+          // Sign out to prevent access before 2FA verification
+          await supabase.auth.signOut()
           setRequires2FA(true)
           setUserId(data.user.id)
+          setTempCredentials({ email, password })
           setIsLoading(false)
           return
         }
@@ -141,8 +162,19 @@ export default function Page() {
         throw new Error(data.error || 'Invalid 2FA code')
       }
 
-      // Get user profile and redirect
+      // Re-authenticate after successful 2FA verification
       const supabase = createClient()
+      if (tempCredentials) {
+        const { error: reAuthError } = await supabase.auth.signInWithPassword({
+          email: tempCredentials.email,
+          password: tempCredentials.password,
+        })
+        if (reAuthError) {
+          throw new Error('Session restoration failed. Please login again.')
+        }
+      }
+
+      // Get user profile and redirect
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -179,6 +211,12 @@ export default function Page() {
               </div>
             </Link>
           </div>
+          {showVerifiedMessage && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-700 mb-4">
+              <CheckCircle className="h-5 w-5" />
+              <span className="text-sm">Email verified successfully! You can now sign in.</span>
+            </div>
+          )}
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Sign In</CardTitle>

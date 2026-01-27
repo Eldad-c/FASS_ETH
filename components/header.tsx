@@ -94,6 +94,10 @@ export function Header() {
         return '/logistics'
       case 'driver':
         return '/driver'
+      case 'manager':
+        return '/manager'
+      case 'it_support':
+        return '/it-support'
       default:
         return '/'
     }
@@ -110,6 +114,10 @@ export function Header() {
         return 'Logistics Manager'
       case 'driver':
         return 'Tanker Driver'
+      case 'manager':
+        return 'Station Manager'
+      case 'it_support':
+        return 'IT Support'
       default:
         return 'User'
     }

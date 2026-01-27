@@ -16,7 +16,7 @@ export default async function AdminDashboardPage() {
   ] = await Promise.all([
     supabase.from('stations').select('*', { count: 'exact', head: true }).eq('is_active', true),
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('users').select('*', { count: 'exact', head: true }).eq('is_banned', true),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_banned', true),
     supabase.from('user_reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase
       .from('user_reports')
