@@ -506,16 +506,16 @@ CREATE TRIGGER update_trips_updated_at
 -- ============================================================================
 
 INSERT INTO public.stations (id, name, address, latitude, longitude, phone, operating_hours) VALUES
-  ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'TotalEnergies Bole', 'Bole Road, Addis Ababa', 9.0054, 38.7636, '+251-11-661-2345', '24 Hours'),
-  ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 'TotalEnergies Megenagna', 'Megenagna Square, Addis Ababa', 9.0192, 38.7996, '+251-11-662-3456', '6:00 AM - 11:00 PM'),
-  ('c3d4e5f6-a7b8-9012-cdef-123456789012', 'TotalEnergies Mexico', 'Mexico Square, Addis Ababa', 9.0107, 38.7469, '+251-11-663-4567', '6:00 AM - 10:00 PM'),
-  ('d4e5f6a7-b8c9-0123-defa-234567890123', 'TotalEnergies CMC', 'CMC Road, Addis Ababa', 9.0298, 38.8112, '+251-11-664-5678', '6:00 AM - 10:00 PM'),
-  ('e5f6a7b8-c9d0-1234-efab-345678901234', 'TotalEnergies Piassa', 'Piassa Area, Addis Ababa', 9.0357, 38.7468, '+251-11-665-6789', '24 Hours'),
-  ('f6a7b8c9-d0e1-2345-fabc-456789012345', 'TotalEnergies Gerji', 'Gerji Road, Addis Ababa', 8.9963, 38.8201, '+251-11-666-7890', '6:00 AM - 10:00 PM'),
-  ('a7b8c9d0-e1f2-3456-abcd-567890123456', 'TotalEnergies Kazanchis', 'Kazanchis, Addis Ababa', 9.0134, 38.7612, '+251-11-667-8901', '6:00 AM - 11:00 PM'),
+  ('a1b2c3d4-e5f6-4890-abcd-ef1234567890', 'TotalEnergies Bole', 'Bole Road, Addis Ababa', 9.0054, 38.7636, '+251-11-661-2345', '24 Hours'),
+  ('b2c3d4e5-f6a7-4901-bcde-f12345678901', 'TotalEnergies Megenagna', 'Megenagna Square, Addis Ababa', 9.0192, 38.7996, '+251-11-662-3456', '6:00 AM - 11:00 PM'),
+  ('c3d4e5f6-a7b8-4012-cdef-123456789012', 'TotalEnergies Mexico', 'Mexico Square, Addis Ababa', 9.0107, 38.7469, '+251-11-663-4567', '6:00 AM - 10:00 PM'),
+  ('d4e5f6a7-b8c9-4123-defa-234567890123', 'TotalEnergies CMC', 'CMC Road, Addis Ababa', 9.0298, 38.8112, '+251-11-664-5678', '6:00 AM - 10:00 PM'),
+  ('e5f6a7b8-c9d0-4234-efab-345678901234', 'TotalEnergies Piassa', 'Piassa Area, Addis Ababa', 9.0357, 38.7468, '+251-11-665-6789', '24 Hours'),
+  ('f6a7b8c9-d0e1-4345-fabc-456789012345', 'TotalEnergies Gerji', 'Gerji Road, Addis Ababa', 8.9963, 38.8201, '+251-11-666-7890', '6:00 AM - 10:00 PM'),
+  ('a7b8c9d0-e1f2-4456-abcd-567890123456', 'TotalEnergies Kazanchis', 'Kazanchis, Addis Ababa', 9.0134, 38.7612, '+251-11-667-8901', '6:00 AM - 11:00 PM'),
   ('b8c9d0e1-f2a3-4567-bcde-678901234567', 'TotalEnergies Sarbet', 'Sarbet Area, Addis Ababa', 9.0045, 38.7334, '+251-11-668-9012', '6:00 AM - 10:00 PM'),
-  ('c9d0e1f2-a3b4-5678-cdef-789012345678', 'TotalEnergies Arat Kilo', 'Arat Kilo, Addis Ababa', 9.0378, 38.7621, '+251-11-669-0123', '6:00 AM - 10:00 PM'),
-  ('d0e1f2a3-b4c5-6789-defa-890123456789', 'TotalEnergies Ayat', 'Ayat Area, Addis Ababa', 9.0489, 38.8345, '+251-11-670-1234', '6:00 AM - 10:00 PM')
+  ('c9d0e1f2-a3b4-4678-cdef-789012345678', 'TotalEnergies Arat Kilo', 'Arat Kilo, Addis Ababa', 9.0378, 38.7621, '+251-11-669-0123', '6:00 AM - 10:00 PM'),
+  ('d0e1f2a3-b4c5-4789-defa-890123456789', 'TotalEnergies Ayat', 'Ayat Area, Addis Ababa', 9.0489, 38.8345, '+251-11-670-1234', '6:00 AM - 10:00 PM')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
@@ -525,45 +525,45 @@ ON CONFLICT DO NOTHING;
 -- Insert fuel status for each station and fuel type
 INSERT INTO public.fuel_status (station_id, fuel_type, status, is_available, price_per_liter, queue_level, approval_status) VALUES
   -- TotalEnergies Bole
-  ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'diesel', 'available', true, 72.50, 'short', 'APPROVED'),
-  ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'benzene_95', 'available', true, 74.80, 'none', 'APPROVED'),
-  ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'benzene_97', 'low', true, 78.20, 'medium', 'APPROVED'),
+  ('a1b2c3d4-e5f6-4890-abcd-ef1234567890', 'diesel', 'available', true, 72.50, 'short', 'APPROVED'),
+  ('a1b2c3d4-e5f6-4890-abcd-ef1234567890', 'benzene_95', 'available', true, 74.80, 'none', 'APPROVED'),
+  ('a1b2c3d4-e5f6-4890-abcd-ef1234567890', 'benzene_97', 'low', true, 78.20, 'medium', 'APPROVED'),
   -- TotalEnergies Megenagna
-  ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 'diesel', 'available', true, 72.50, 'none', 'APPROVED'),
-  ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 'benzene_95', 'low', true, 74.80, 'long', 'APPROVED'),
-  ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 'benzene_97', 'available', true, 78.20, 'short', 'APPROVED'),
+  ('b2c3d4e5-f6a7-4901-bcde-f12345678901', 'diesel', 'available', true, 72.50, 'none', 'APPROVED'),
+  ('b2c3d4e5-f6a7-4901-bcde-f12345678901', 'benzene_95', 'low', true, 74.80, 'long', 'APPROVED'),
+  ('b2c3d4e5-f6a7-4901-bcde-f12345678901', 'benzene_97', 'available', true, 78.20, 'short', 'APPROVED'),
   -- TotalEnergies Mexico
-  ('c3d4e5f6-a7b8-9012-cdef-123456789012', 'diesel', 'out_of_stock', false, 72.50, 'very_long', 'APPROVED'),
-  ('c3d4e5f6-a7b8-9012-cdef-123456789012', 'benzene_95', 'available', true, 74.80, 'medium', 'APPROVED'),
-  ('c3d4e5f6-a7b8-9012-cdef-123456789012', 'benzene_97', 'available', true, 78.20, 'none', 'APPROVED'),
+  ('c3d4e5f6-a7b8-4012-cdef-123456789012', 'diesel', 'out_of_stock', false, 72.50, 'very_long', 'APPROVED'),
+  ('c3d4e5f6-a7b8-4012-cdef-123456789012', 'benzene_95', 'available', true, 74.80, 'medium', 'APPROVED'),
+  ('c3d4e5f6-a7b8-4012-cdef-123456789012', 'benzene_97', 'available', true, 78.20, 'none', 'APPROVED'),
   -- TotalEnergies CMC
-  ('d4e5f6a7-b8c9-0123-defa-234567890123', 'diesel', 'available', true, 72.50, 'short', 'APPROVED'),
-  ('d4e5f6a7-b8c9-0123-defa-234567890123', 'benzene_95', 'available', true, 74.80, 'none', 'APPROVED'),
-  ('d4e5f6a7-b8c9-0123-defa-234567890123', 'benzene_97', 'out_of_stock', false, 78.20, 'none', 'APPROVED'),
+  ('d4e5f6a7-b8c9-4123-defa-234567890123', 'diesel', 'available', true, 72.50, 'short', 'APPROVED'),
+  ('d4e5f6a7-b8c9-4123-defa-234567890123', 'benzene_95', 'available', true, 74.80, 'none', 'APPROVED'),
+  ('d4e5f6a7-b8c9-4123-defa-234567890123', 'benzene_97', 'out_of_stock', false, 78.20, 'none', 'APPROVED'),
   -- TotalEnergies Piassa
-  ('e5f6a7b8-c9d0-1234-efab-345678901234', 'diesel', 'available', true, 72.50, 'none', 'APPROVED'),
-  ('e5f6a7b8-c9d0-1234-efab-345678901234', 'benzene_95', 'available', true, 74.80, 'short', 'APPROVED'),
-  ('e5f6a7b8-c9d0-1234-efab-345678901234', 'benzene_97', 'available', true, 78.20, 'none', 'APPROVED'),
+  ('e5f6a7b8-c9d0-4234-efab-345678901234', 'diesel', 'available', true, 72.50, 'none', 'APPROVED'),
+  ('e5f6a7b8-c9d0-4234-efab-345678901234', 'benzene_95', 'available', true, 74.80, 'short', 'APPROVED'),
+  ('e5f6a7b8-c9d0-4234-efab-345678901234', 'benzene_97', 'available', true, 78.20, 'none', 'APPROVED'),
   -- TotalEnergies Gerji
-  ('f6a7b8c9-d0e1-2345-fabc-456789012345', 'diesel', 'low', true, 72.50, 'long', 'APPROVED'),
-  ('f6a7b8c9-d0e1-2345-fabc-456789012345', 'benzene_95', 'available', true, 74.80, 'medium', 'APPROVED'),
-  ('f6a7b8c9-d0e1-2345-fabc-456789012345', 'benzene_97', 'low', true, 78.20, 'short', 'APPROVED'),
+  ('f6a7b8c9-d0e1-4345-fabc-456789012345', 'diesel', 'low', true, 72.50, 'long', 'APPROVED'),
+  ('f6a7b8c9-d0e1-4345-fabc-456789012345', 'benzene_95', 'available', true, 74.80, 'medium', 'APPROVED'),
+  ('f6a7b8c9-d0e1-4345-fabc-456789012345', 'benzene_97', 'low', true, 78.20, 'short', 'APPROVED'),
   -- TotalEnergies Kazanchis
-  ('a7b8c9d0-e1f2-3456-abcd-567890123456', 'diesel', 'available', true, 72.50, 'none', 'APPROVED'),
-  ('a7b8c9d0-e1f2-3456-abcd-567890123456', 'benzene_95', 'out_of_stock', false, 74.80, 'very_long', 'APPROVED'),
-  ('a7b8c9d0-e1f2-3456-abcd-567890123456', 'benzene_97', 'available', true, 78.20, 'short', 'APPROVED'),
+  ('a7b8c9d0-e1f2-4456-abcd-567890123456', 'diesel', 'available', true, 72.50, 'none', 'APPROVED'),
+  ('a7b8c9d0-e1f2-4456-abcd-567890123456', 'benzene_95', 'out_of_stock', false, 74.80, 'very_long', 'APPROVED'),
+  ('a7b8c9d0-e1f2-4456-abcd-567890123456', 'benzene_97', 'available', true, 78.20, 'short', 'APPROVED'),
   -- TotalEnergies Sarbet
   ('b8c9d0e1-f2a3-4567-bcde-678901234567', 'diesel', 'available', true, 72.50, 'short', 'APPROVED'),
   ('b8c9d0e1-f2a3-4567-bcde-678901234567', 'benzene_95', 'available', true, 74.80, 'none', 'APPROVED'),
   ('b8c9d0e1-f2a3-4567-bcde-678901234567', 'benzene_97', 'available', true, 78.20, 'none', 'APPROVED'),
   -- TotalEnergies Arat Kilo
-  ('c9d0e1f2-a3b4-5678-cdef-789012345678', 'diesel', 'available', true, 72.50, 'medium', 'APPROVED'),
-  ('c9d0e1f2-a3b4-5678-cdef-789012345678', 'benzene_95', 'low', true, 74.80, 'long', 'APPROVED'),
-  ('c9d0e1f2-a3b4-5678-cdef-789012345678', 'benzene_97', 'available', true, 78.20, 'short', 'APPROVED'),
+  ('c9d0e1f2-a3b4-4678-cdef-789012345678', 'diesel', 'available', true, 72.50, 'medium', 'APPROVED'),
+  ('c9d0e1f2-a3b4-4678-cdef-789012345678', 'benzene_95', 'low', true, 74.80, 'long', 'APPROVED'),
+  ('c9d0e1f2-a3b4-4678-cdef-789012345678', 'benzene_97', 'available', true, 78.20, 'short', 'APPROVED'),
   -- TotalEnergies Ayat
-  ('d0e1f2a3-b4c5-6789-defa-890123456789', 'diesel', 'available', true, 72.50, 'none', 'APPROVED'),
-  ('d0e1f2a3-b4c5-6789-defa-890123456789', 'benzene_95', 'available', true, 74.80, 'short', 'APPROVED'),
-  ('d0e1f2a3-b4c5-6789-defa-890123456789', 'benzene_97', 'available', true, 78.20, 'none', 'APPROVED')
+  ('d0e1f2a3-b4c5-4789-defa-890123456789', 'diesel', 'available', true, 72.50, 'none', 'APPROVED'),
+  ('d0e1f2a3-b4c5-4789-defa-890123456789', 'benzene_95', 'available', true, 74.80, 'short', 'APPROVED'),
+  ('d0e1f2a3-b4c5-4789-defa-890123456789', 'benzene_97', 'available', true, 78.20, 'none', 'APPROVED')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
@@ -571,11 +571,11 @@ ON CONFLICT DO NOTHING;
 -- ============================================================================
 
 INSERT INTO public.tankers (id, plate_number, capacity_liters, status, current_latitude, current_longitude) VALUES
-  ('t1a2b3c4-d5e6-7890-abcd-ef1234567890', 'AA-12345', 25000, 'available', 9.0054, 38.7636),
-  ('t2b3c4d5-e6f7-8901-bcde-f12345678901', 'AA-23456', 20000, 'in_transit', 9.0192, 38.7996),
-  ('t3c4d5e6-f7a8-9012-cdef-123456789012', 'AA-34567', 30000, 'available', 9.0107, 38.7469),
-  ('t4d5e6f7-a8b9-0123-defa-234567890123', 'AA-45678', 25000, 'maintenance', 9.0298, 38.8112),
-  ('t5e6f7a8-b9c0-1234-efab-345678901234', 'AA-56789', 20000, 'in_transit', 9.0357, 38.7468)
+  ('11a2b3c4-d5e6-4890-abcd-ef1234567890', 'AA-12345', 25000, 'available', 9.0054, 38.7636),
+  ('22b3c4d5-e6f7-4901-bcde-f12345678901', 'AA-23456', 20000, 'in_transit', 9.0192, 38.7996),
+  ('33c4d5e6-f7a8-4012-cdef-123456789012', 'AA-34567', 30000, 'available', 9.0107, 38.7469),
+  ('44d5e6f7-a8b9-4123-defa-234567890123', 'AA-45678', 25000, 'maintenance', 9.0298, 38.8112),
+  ('55e6f7a8-b9c0-4234-efab-345678901234', 'AA-56789', 20000, 'in_transit', 9.0357, 38.7468)
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
@@ -583,24 +583,24 @@ ON CONFLICT DO NOTHING;
 -- ============================================================================
 
 INSERT INTO public.trips (tanker_id, destination_station_id, fuel_type, quantity_liters, status, scheduled_departure, estimated_arrival) VALUES
-  ('t2b3c4d5-e6f7-8901-bcde-f12345678901', 'c3d4e5f6-a7b8-9012-cdef-123456789012', 'diesel', 15000, 'in_progress', NOW() - INTERVAL '2 hours', NOW() + INTERVAL '1 hour'),
-  ('t5e6f7a8-b9c0-1234-efab-345678901234', 'a7b8c9d0-e1f2-3456-abcd-567890123456', 'benzene_95', 18000, 'in_progress', NOW() - INTERVAL '1 hour', NOW() + INTERVAL '2 hours'),
-  ('t1a2b3c4-d5e6-7890-abcd-ef1234567890', 'f6a7b8c9-d0e1-2345-fabc-456789012345', 'diesel', 20000, 'scheduled', NOW() + INTERVAL '3 hours', NOW() + INTERVAL '5 hours')
+  ('22b3c4d5-e6f7-4901-bcde-f12345678901', 'c3d4e5f6-a7b8-4012-cdef-123456789012', 'diesel', 15000, 'in_progress', NOW() - INTERVAL '2 hours', NOW() + INTERVAL '1 hour'),
+  ('55e6f7a8-b9c0-4234-efab-345678901234', 'a7b8c9d0-e1f2-4456-abcd-567890123456', 'benzene_95', 18000, 'in_progress', NOW() - INTERVAL '1 hour', NOW() + INTERVAL '2 hours'),
+  ('11a2b3c4-d5e6-4890-abcd-ef1234567890', 'f6a7b8c9-d0e1-4345-fabc-456789012345', 'diesel', 20000, 'scheduled', NOW() + INTERVAL '3 hours', NOW() + INTERVAL '5 hours')
 ON CONFLICT DO NOTHING;
 
 -- Update stations with next delivery ETA
-UPDATE public.stations SET next_delivery_eta = NOW() + INTERVAL '1 hour' WHERE id = 'c3d4e5f6-a7b8-9012-cdef-123456789012';
-UPDATE public.stations SET next_delivery_eta = NOW() + INTERVAL '2 hours' WHERE id = 'a7b8c9d0-e1f2-3456-abcd-567890123456';
-UPDATE public.stations SET next_delivery_eta = NOW() + INTERVAL '5 hours' WHERE id = 'f6a7b8c9-d0e1-2345-fabc-456789012345';
+UPDATE public.stations SET next_delivery_eta = NOW() + INTERVAL '1 hour' WHERE id = 'c3d4e5f6-a7b8-4012-cdef-123456789012';
+UPDATE public.stations SET next_delivery_eta = NOW() + INTERVAL '2 hours' WHERE id = 'a7b8c9d0-e1f2-4456-abcd-567890123456';
+UPDATE public.stations SET next_delivery_eta = NOW() + INTERVAL '5 hours' WHERE id = 'f6a7b8c9-d0e1-4345-fabc-456789012345';
 
 -- ============================================================================
 -- SECTION 22: INSERT SAMPLE NOTIFICATIONS
 -- ============================================================================
 
 INSERT INTO public.notifications (title, message, station_id) VALUES
-  ('Fuel Shortage Alert', 'Diesel is out of stock at TotalEnergies Mexico. Delivery expected in 1 hour.', 'c3d4e5f6-a7b8-9012-cdef-123456789012'),
-  ('Delivery Completed', 'TotalEnergies Bole has received a fresh delivery of Benzene 97.', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'),
-  ('Long Queue Alert', 'High demand detected at TotalEnergies Megenagna for Benzene 95. Expect 20+ minute wait.', 'b2c3d4e5-f6a7-8901-bcde-f12345678901')
+  ('Fuel Shortage Alert', 'Diesel is out of stock at TotalEnergies Mexico. Delivery expected in 1 hour.', 'c3d4e5f6-a7b8-4012-cdef-123456789012'),
+  ('Delivery Completed', 'TotalEnergies Bole has received a fresh delivery of Benzene 97.', 'a1b2c3d4-e5f6-4890-abcd-ef1234567890'),
+  ('Long Queue Alert', 'High demand detected at TotalEnergies Megenagna for Benzene 95. Expect 20+ minute wait.', 'b2c3d4e5-f6a7-4901-bcde-f12345678901')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
@@ -610,7 +610,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.system_logs (level, component, message, metadata) VALUES
   ('INFO', 'auth', 'System started successfully', '{"version": "2.0.0"}'::jsonb),
   ('INFO', 'fuel_status', 'Automated fuel status sync completed', '{"stations_updated": 10}'::jsonb),
-  ('WARNING', 'tanker_tracking', 'GPS signal weak for tanker AA-23456', '{"tanker_id": "t2b3c4d5-e6f7-8901-bcde-f12345678901"}'::jsonb),
+  ('WARNING', 'tanker_tracking', 'GPS signal weak for tanker AA-23456', '{"tanker_id": "22b3c4d5-e6f7-4901-bcde-f12345678901"}'::jsonb),
   ('INFO', 'delivery', 'Delivery dispatched to TotalEnergies Mexico', '{"trip_id": "trip-001", "fuel_type": "diesel"}'::jsonb),
   ('INFO', 'notifications', 'Broadcast notification sent to 150 subscribers', '{"notification_type": "fuel_shortage"}'::jsonb)
 ON CONFLICT DO NOTHING;

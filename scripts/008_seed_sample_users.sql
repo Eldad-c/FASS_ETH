@@ -17,7 +17,7 @@
 -- Admin 1: System Administrator
 INSERT INTO public.profiles (id, email, full_name, role, phone, two_factor_enabled, language_preference, trust_score)
 VALUES (
-  'ad000000-0000-0000-0000-000000000001',
+  'ad000001-0000-4000-a000-000000000001',
   'admin@totalenergies.et',
   'Abebe Kebede',
   'ADMIN',
@@ -33,7 +33,7 @@ VALUES (
 -- Admin 2: Senior Administrator
 INSERT INTO public.profiles (id, email, full_name, role, phone, two_factor_enabled, language_preference, trust_score)
 VALUES (
-  'ad000000-0000-0000-0000-000000000002',
+  'ad000002-0000-4000-a000-000000000002',
   'senior.admin@totalenergies.et',
   'Sara Tesfaye',
   'ADMIN',
@@ -53,12 +53,12 @@ VALUES (
 -- Manager 1: Bole Station Manager
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, two_factor_enabled, language_preference, trust_score)
 VALUES (
-  'mg000000-0000-0000-0000-000000000001',
+  'mg000001-0000-4000-a000-000000000001',
   'manager.bole@totalenergies.et',
   'Dawit Haile',
   'MANAGER',
   '+251-91-345-6789',
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890', -- TotalEnergies Bole
+  'a1b2c3d4-e5f6-4890-abcd-ef1234567890', -- TotalEnergies Bole
   true,
   'am',
   95.00
@@ -70,12 +70,12 @@ VALUES (
 -- Manager 2: Mexico Station Manager
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, two_factor_enabled, language_preference, trust_score)
 VALUES (
-  'mg000000-0000-0000-0000-000000000002',
+  'mg000002-0000-4000-a000-000000000002',
   'manager.mexico@totalenergies.et',
   'Hiwot Girma',
   'MANAGER',
   '+251-91-456-7890',
-  'c3d4e5f6-a7b8-9012-cdef-123456789012', -- TotalEnergies Mexico
+  'c3d4e5f6-a7b8-4012-cdef-123456789012', -- TotalEnergies Mexico
   true,
   'en',
   92.00
@@ -87,12 +87,12 @@ VALUES (
 -- Manager 3: Piassa Station Manager
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, two_factor_enabled, language_preference, trust_score)
 VALUES (
-  'mg000000-0000-0000-0000-000000000003',
+  'mg000003-0000-4000-a000-000000000003',
   'manager.piassa@totalenergies.et',
   'Yohannes Bekele',
   'MANAGER',
   '+251-91-567-8901',
-  'e5f6a7b8-c9d0-1234-efab-345678901234', -- TotalEnergies Piassa
+  'e5f6a7b8-c9d0-4234-efab-345678901234', -- TotalEnergies Piassa
   true,
   'am',
   90.00
@@ -102,9 +102,9 @@ VALUES (
   full_name = EXCLUDED.full_name;
 
 -- Update stations with their managers
-UPDATE public.stations SET manager_id = 'mg000000-0000-0000-0000-000000000001' WHERE id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-UPDATE public.stations SET manager_id = 'mg000000-0000-0000-0000-000000000002' WHERE id = 'c3d4e5f6-a7b8-9012-cdef-123456789012';
-UPDATE public.stations SET manager_id = 'mg000000-0000-0000-0000-000000000003' WHERE id = 'e5f6a7b8-c9d0-1234-efab-345678901234';
+UPDATE public.stations SET manager_id = 'mg000001-0000-4000-a000-000000000001' WHERE id = 'a1b2c3d4-e5f6-4890-abcd-ef1234567890';
+UPDATE public.stations SET manager_id = 'mg000002-0000-4000-a000-000000000002' WHERE id = 'c3d4e5f6-a7b8-4012-cdef-123456789012';
+UPDATE public.stations SET manager_id = 'mg000003-0000-4000-a000-000000000003' WHERE id = 'e5f6a7b8-c9d0-4234-efab-345678901234';
 
 -- ============================================================================
 -- SAMPLE LOGISTICS HUB PERSONNEL (3)
@@ -113,7 +113,7 @@ UPDATE public.stations SET manager_id = 'mg000000-0000-0000-0000-000000000003' W
 -- Logistics 1: Senior Logistics Coordinator
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'lg000000-0000-0000-0000-000000000001',
+  'lg000001-0000-4000-a000-000000000001',
   'logistics.lead@totalenergies.et',
   'Mekonnen Tadesse',
   'LOGISTICS',
@@ -127,7 +127,7 @@ VALUES (
 -- Logistics 2: Fleet Coordinator
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'lg000000-0000-0000-0000-000000000002',
+  'lg000002-0000-4000-a000-000000000002',
   'fleet@totalenergies.et',
   'Tigist Mengistu',
   'LOGISTICS',
@@ -141,7 +141,7 @@ VALUES (
 -- Logistics 3: Dispatch Coordinator
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'lg000000-0000-0000-0000-000000000003',
+  'lg000003-0000-4000-a000-000000000003',
   'dispatch@totalenergies.et',
   'Mulugeta Assefa',
   'LOGISTICS',
@@ -159,7 +159,7 @@ VALUES (
 -- Driver 1: Senior Driver
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'dr000000-0000-0000-0000-000000000001',
+  'dr000001-0000-4000-a000-000000000001',
   'driver.1@totalenergies.et',
   'Tesfaye Alemayehu',
   'DRIVER',
@@ -173,7 +173,7 @@ VALUES (
 -- Driver 2
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'dr000000-0000-0000-0000-000000000002',
+  'dr000002-0000-4000-a000-000000000002',
   'driver.2@totalenergies.et',
   'Getachew Woldemariam',
   'DRIVER',
@@ -187,7 +187,7 @@ VALUES (
 -- Driver 3
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'dr000000-0000-0000-0000-000000000003',
+  'dr000003-0000-4000-a000-000000000003',
   'driver.3@totalenergies.et',
   'Solomon Gebre',
   'DRIVER',
@@ -201,7 +201,7 @@ VALUES (
 -- Driver 4
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'dr000000-0000-0000-0000-000000000004',
+  'dr000004-0000-4000-a000-000000000004',
   'driver.4@totalenergies.et',
   'Biniam Habtamu',
   'DRIVER',
@@ -215,7 +215,7 @@ VALUES (
 -- Driver 5
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'dr000000-0000-0000-0000-000000000005',
+  'dr000005-0000-4000-a000-000000000005',
   'driver.5@totalenergies.et',
   'Hailu Desta',
   'DRIVER',
@@ -227,11 +227,11 @@ VALUES (
   full_name = EXCLUDED.full_name;
 
 -- Assign drivers to tankers
-UPDATE public.tankers SET driver_id = 'dr000000-0000-0000-0000-000000000001' WHERE id = 't1a2b3c4-d5e6-7890-abcd-ef1234567890';
-UPDATE public.tankers SET driver_id = 'dr000000-0000-0000-0000-000000000002' WHERE id = 't2b3c4d5-e6f7-8901-bcde-f12345678901';
-UPDATE public.tankers SET driver_id = 'dr000000-0000-0000-0000-000000000003' WHERE id = 't3c4d5e6-f7a8-9012-cdef-123456789012';
-UPDATE public.tankers SET driver_id = 'dr000000-0000-0000-0000-000000000004' WHERE id = 't4d5e6f7-a8b9-0123-defa-234567890123';
-UPDATE public.tankers SET driver_id = 'dr000000-0000-0000-0000-000000000005' WHERE id = 't5e6f7a8-b9c0-1234-efab-345678901234';
+UPDATE public.tankers SET driver_id = 'dr000001-0000-4000-a000-000000000001' WHERE id = '11a2b3c4-d5e6-4890-abcd-ef1234567890';
+UPDATE public.tankers SET driver_id = 'dr000002-0000-4000-a000-000000000002' WHERE id = '22b3c4d5-e6f7-4901-bcde-f12345678901';
+UPDATE public.tankers SET driver_id = 'dr000003-0000-4000-a000-000000000003' WHERE id = '33c4d5e6-f7a8-4012-cdef-123456789012';
+UPDATE public.tankers SET driver_id = 'dr000004-0000-4000-a000-000000000004' WHERE id = '44d5e6f7-a8b9-4123-defa-234567890123';
+UPDATE public.tankers SET driver_id = 'dr000005-0000-4000-a000-000000000005' WHERE id = '55e6f7a8-b9c0-4234-efab-345678901234';
 
 -- ============================================================================
 -- SAMPLE STATION STAFF (6)
@@ -240,12 +240,12 @@ UPDATE public.tankers SET driver_id = 'dr000000-0000-0000-0000-000000000005' WHE
 -- Staff 1: Bole Station Staff
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, language_preference, trust_score)
 VALUES (
-  'st000000-0000-0000-0000-000000000001',
+  'st000001-0000-4000-a000-000000000001',
   'staff.bole.1@totalenergies.et',
   'Kidist Ayele',
   'STAFF',
   '+251-91-666-7777',
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  'a1b2c3d4-e5f6-4890-abcd-ef1234567890',
   'am',
   70.00
 ) ON CONFLICT (id) DO UPDATE SET
@@ -256,12 +256,12 @@ VALUES (
 -- Staff 2: Bole Station Staff
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, language_preference, trust_score)
 VALUES (
-  'st000000-0000-0000-0000-000000000002',
+  'st000002-0000-4000-a000-000000000002',
   'staff.bole.2@totalenergies.et',
   'Fitsum Negash',
   'STAFF',
   '+251-91-777-8888',
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  'a1b2c3d4-e5f6-4890-abcd-ef1234567890',
   'en',
   68.00
 ) ON CONFLICT (id) DO UPDATE SET
@@ -272,12 +272,12 @@ VALUES (
 -- Staff 3: Mexico Station Staff
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, language_preference, trust_score)
 VALUES (
-  'st000000-0000-0000-0000-000000000003',
+  'st000003-0000-4000-a000-000000000003',
   'staff.mexico@totalenergies.et',
   'Bethlehem Yosef',
   'STAFF',
   '+251-91-888-9999',
-  'c3d4e5f6-a7b8-9012-cdef-123456789012',
+  'c3d4e5f6-a7b8-4012-cdef-123456789012',
   'am',
   72.00
 ) ON CONFLICT (id) DO UPDATE SET
@@ -288,12 +288,12 @@ VALUES (
 -- Staff 4: Piassa Station Staff
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, language_preference, trust_score)
 VALUES (
-  'st000000-0000-0000-0000-000000000004',
+  'st000004-0000-4000-a000-000000000004',
   'staff.piassa@totalenergies.et',
   'Meseret Fikre',
   'STAFF',
   '+251-91-999-0000',
-  'e5f6a7b8-c9d0-1234-efab-345678901234',
+  'e5f6a7b8-c9d0-4234-efab-345678901234',
   'am',
   65.00
 ) ON CONFLICT (id) DO UPDATE SET
@@ -304,12 +304,12 @@ VALUES (
 -- Staff 5: CMC Station Staff
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, language_preference, trust_score)
 VALUES (
-  'st000000-0000-0000-0000-000000000005',
+  'st000005-0000-4000-a000-000000000005',
   'staff.cmc@totalenergies.et',
   'Henok Tadesse',
   'STAFF',
   '+251-91-000-1111',
-  'd4e5f6a7-b8c9-0123-defa-234567890123',
+  'd4e5f6a7-b8c9-4123-defa-234567890123',
   'en',
   74.00
 ) ON CONFLICT (id) DO UPDATE SET
@@ -320,12 +320,12 @@ VALUES (
 -- Staff 6: Megenagna Station Staff
 INSERT INTO public.profiles (id, email, full_name, role, phone, assigned_station_id, language_preference, trust_score)
 VALUES (
-  'st000000-0000-0000-0000-000000000006',
+  'st000006-0000-4000-a000-000000000006',
   'staff.megenagna@totalenergies.et',
   'Rahel Bekele',
   'STAFF',
   '+251-91-112-2334',
-  'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+  'b2c3d4e5-f6a7-4901-bcde-f12345678901',
   'am',
   69.00
 ) ON CONFLICT (id) DO UPDATE SET
@@ -340,7 +340,7 @@ VALUES (
 -- IT Support 1: Senior IT Support
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'it000000-0000-0000-0000-000000000001',
+  'it000001-0000-4000-a000-000000000001',
   'it.support@totalenergies.et',
   'Daniel Amanuel',
   'IT_SUPPORT',
@@ -354,7 +354,7 @@ VALUES (
 -- IT Support 2: IT Support Technician
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'it000000-0000-0000-0000-000000000002',
+  'it000002-0000-4000-a000-000000000002',
   'it.technician@totalenergies.et',
   'Natnael Berhane',
   'IT_SUPPORT',
@@ -372,7 +372,7 @@ VALUES (
 -- Public User 1
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'pu000000-0000-0000-0000-000000000001',
+  'pu000001-0000-4000-a000-000000000001',
   'user.1@example.com',
   'Meron Alemu',
   'PUBLIC',
@@ -386,7 +386,7 @@ VALUES (
 -- Public User 2
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'pu000000-0000-0000-0000-000000000002',
+  'pu000002-0000-4000-a000-000000000002',
   'user.2@example.com',
   'Elias Wondimu',
   'PUBLIC',
@@ -400,7 +400,7 @@ VALUES (
 -- Public User 3
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'pu000000-0000-0000-0000-000000000003',
+  'pu000003-0000-4000-a000-000000000003',
   'user.3@example.com',
   'Selamawit Desta',
   'PUBLIC',
@@ -414,7 +414,7 @@ VALUES (
 -- Public User 4
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'pu000000-0000-0000-0000-000000000004',
+  'pu000004-0000-4000-a000-000000000004',
   'user.4@example.com',
   'Fasil Mesfin',
   'PUBLIC',
@@ -428,7 +428,7 @@ VALUES (
 -- Public User 5
 INSERT INTO public.profiles (id, email, full_name, role, phone, language_preference, trust_score)
 VALUES (
-  'pu000000-0000-0000-0000-000000000005',
+  'pu000005-0000-4000-a000-000000000005',
   'user.5@example.com',
   'Tsega Hailu',
   'PUBLIC',
@@ -445,11 +445,11 @@ VALUES (
 
 INSERT INTO public.user_reports (station_id, user_id, fuel_type, reported_status, reported_queue_level, comment, status)
 VALUES
-  ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'pu000000-0000-0000-0000-000000000001', 'diesel', 'available', 'short', 'Diesel available, short queue around 5 minutes', 'verified'),
-  ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 'pu000000-0000-0000-0000-000000000002', 'benzene_95', 'low', 'long', 'Very long queue for Benzene 95, been waiting 25 minutes', 'pending'),
-  ('c3d4e5f6-a7b8-9012-cdef-123456789012', 'pu000000-0000-0000-0000-000000000003', 'diesel', 'out_of_stock', 'very_long', 'No diesel available, tanker arrived but not yet dispensing', 'pending'),
-  ('d4e5f6a7-b8c9-0123-defa-234567890123', 'pu000000-0000-0000-0000-000000000004', 'benzene_97', 'available', 'none', 'Premium fuel available with no queue!', 'verified'),
-  ('e5f6a7b8-c9d0-1234-efab-345678901234', 'pu000000-0000-0000-0000-000000000005', 'diesel', 'available', 'medium', 'Diesel available but moderate queue', 'pending')
+  ('a1b2c3d4-e5f6-4890-abcd-ef1234567890', 'pu000001-0000-4000-a000-000000000001', 'diesel', 'available', 'short', 'Diesel available, short queue around 5 minutes', 'verified'),
+  ('b2c3d4e5-f6a7-4901-bcde-f12345678901', 'pu000002-0000-4000-a000-000000000002', 'benzene_95', 'low', 'long', 'Very long queue for Benzene 95, been waiting 25 minutes', 'pending'),
+  ('c3d4e5f6-a7b8-4012-cdef-123456789012', 'pu000003-0000-4000-a000-000000000003', 'diesel', 'out_of_stock', 'very_long', 'No diesel available, tanker arrived but not yet dispensing', 'pending'),
+  ('d4e5f6a7-b8c9-4123-defa-234567890123', 'pu000004-0000-4000-a000-000000000004', 'benzene_97', 'available', 'none', 'Premium fuel available with no queue!', 'verified'),
+  ('e5f6a7b8-c9d0-4234-efab-345678901234', 'pu000005-0000-4000-a000-000000000005', 'diesel', 'available', 'medium', 'Diesel available but moderate queue', 'pending')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
@@ -458,11 +458,11 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO public.subscriptions (user_id, station_id, fuel_type, notify_on_available, notify_on_low, notify_on_delivery, is_active)
 VALUES
-  ('pu000000-0000-0000-0000-000000000001', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'diesel', true, true, true, true),
-  ('pu000000-0000-0000-0000-000000000001', 'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'benzene_95', true, false, true, true),
-  ('pu000000-0000-0000-0000-000000000002', 'c3d4e5f6-a7b8-9012-cdef-123456789012', 'diesel', true, true, true, true),
-  ('pu000000-0000-0000-0000-000000000003', 'd4e5f6a7-b8c9-0123-defa-234567890123', NULL, true, true, true, true),
-  ('pu000000-0000-0000-0000-000000000004', 'e5f6a7b8-c9d0-1234-efab-345678901234', 'benzene_97', true, false, false, true)
+  ('pu000001-0000-4000-a000-000000000001', 'a1b2c3d4-e5f6-4890-abcd-ef1234567890', 'diesel', true, true, true, true),
+  ('pu000001-0000-4000-a000-000000000001', 'b2c3d4e5-f6a7-4901-bcde-f12345678901', 'benzene_95', true, false, true, true),
+  ('pu000002-0000-4000-a000-000000000002', 'c3d4e5f6-a7b8-4012-cdef-123456789012', 'diesel', true, true, true, true),
+  ('pu000003-0000-4000-a000-000000000003', 'd4e5f6a7-b8c9-4123-defa-234567890123', NULL, true, true, true, true),
+  ('pu000004-0000-4000-a000-000000000004', 'e5f6a7b8-c9d0-4234-efab-345678901234', 'benzene_97', true, false, false, true)
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
