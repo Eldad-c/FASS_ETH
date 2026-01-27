@@ -3,33 +3,19 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Building2, Users, Fuel, LogOut } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Building2, Users, Fuel } from 'lucide-react'
 
 export default function AdminPage() {
-  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     stations: 0,
     users: 0,
     fuelStatus: { available: 0, low: 0, outOfStock: 0 }
   })
-  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
-      setUser(user)
-      loadStats()
-      setLoading(false)
-    }
-    checkAuth()
+    loadStats()
   }, [])
 
   const loadStats = async () => {
@@ -51,11 +37,7 @@ export default function AdminPage() {
       users: userResult.count || 0,
       fuelStatus: fuelStats
     })
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
+    setLoading(false)
   }
 
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
@@ -66,15 +48,9 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Console</h1>
-            <p className="text-muted-foreground mt-1">System management and monitoring</p>
-          </div>
-          <Button variant="outline" onClick={handleLogout} className="gap-2">
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Admin Console</h1>
+          <p className="text-muted-foreground mt-1">System management and monitoring</p>
         </div>
 
         {/* Stats Grid */}

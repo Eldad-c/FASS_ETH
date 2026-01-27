@@ -6,31 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { LogOut } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 
 export default function StaffPage() {
-  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [stations, setStations] = useState<any[]>([])
   const [selectedStation, setSelectedStation] = useState('')
   const [fuelStatus, setFuelStatus] = useState<any[]>([])
   const [refreshing, setRefreshing] = useState(false)
-  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
-      setUser(user)
-      loadStations()
-      setLoading(false)
-    }
-    checkAuth()
+    loadStations()
   }, [])
 
   const loadStations = async () => {
@@ -44,6 +30,7 @@ export default function StaffPage() {
       setSelectedStation(data[0].id)
       loadFuelStatus(data[0].id)
     }
+    setLoading(false)
   }
 
   const loadFuelStatus = async (stationId: string) => {
@@ -73,11 +60,6 @@ export default function StaffPage() {
     setRefreshing(false)
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
 
   const currentStation = stations.find(s => s.id === selectedStation)
@@ -86,15 +68,9 @@ export default function StaffPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Staff Portal</h1>
-            <p className="text-muted-foreground mt-1">Manage fuel availability at your station</p>
-          </div>
-          <Button variant="outline" onClick={handleLogout} className="gap-2">
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Staff Portal</h1>
+          <p className="text-muted-foreground mt-1">Manage fuel availability at your station</p>
         </div>
 
         {/* Station Selection */}

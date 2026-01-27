@@ -7,25 +7,11 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
-  // Protected routes that require authentication
-  const protectedRoutes = ['/admin', '/staff', '/it-support']
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route)
-  )
-
-  // With Fluid compute, don't put this client in a global environment
-  // variable. Always create a new one on each request.
+  // No protected routes - all pages are publicly accessible
   const supabaseUrl = env.supabase.url || env.supabase.urlFallback
   const supabaseAnonKey = env.supabase.anonKey || env.supabase.anonKeyFallback
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (isProtectedRoute) {
-      console.error(
-        'Missing Supabase environment variables in middleware. Denying access to protected route:',
-        request.nextUrl.pathname
-      )
-      return new NextResponse('Server configuration error', { status: 500 })
-    }
     return supabaseResponse
   }
 
@@ -52,34 +38,6 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  // IMPORTANT: If you remove getUser() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (isProtectedRoute && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
-  }
-
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
-
+  // No auth checks - all routes publicly accessible
   return supabaseResponse
 }

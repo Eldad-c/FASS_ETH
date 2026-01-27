@@ -114,16 +114,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Staff Portal Link */}
-        <div className="mb-8 flex gap-4">
-          <Link href="/auth/login">
-            <Button variant="outline">Staff Portal</Button>
-          </Link>
-          <Link href="/auth/login">
-            <Button variant="outline">Admin Console</Button>
-          </Link>
-        </div>
-
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="order-2 lg:order-1">
