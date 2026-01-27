@@ -13,6 +13,7 @@ import { formatDistanceToNow } from 'date-fns'
 // Existing props and utility functions...
 
 export function StationMap({ stations }: StationMapProps) {
+  const [selectedStation, setSelectedStation] = useState<StationWithFuelStatus | null>(null);
   // ... existing state and hooks
 
   // ... existing functions
