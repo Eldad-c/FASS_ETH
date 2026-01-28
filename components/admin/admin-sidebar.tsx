@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
 import {
   Fuel,
   LayoutDashboard,
@@ -15,7 +14,6 @@ import {
   BarChart3,
   Truck,
   Settings,
-  LogOut,
   Menu,
   X,
 } from 'lucide-react'
@@ -40,15 +38,7 @@ const navItems = [
 
 export function AdminSidebar({ profile }: AdminSidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
-
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
-  }
 
   const isActive = (href: string) => {
     if (href === '/admin') return pathname === '/admin'
@@ -91,14 +81,6 @@ export function AdminSidebar({ profile }: AdminSidebarProps) {
           <p className="text-sm font-medium truncate">{profile.full_name || 'Admin'}</p>
           <p className="text-xs text-sidebar-foreground/70 truncate">{profile.email}</p>
         </div>
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground"
-          onClick={handleSignOut}
-        >
-          <LogOut className="h-4 w-4" />
-          Sign Out
-        </Button>
       </div>
     </>
   )

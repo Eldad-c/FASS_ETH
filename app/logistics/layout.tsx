@@ -1,38 +1,25 @@
 import React from "react"
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { LogisticsSidebar } from '@/components/logistics/logistics-sidebar'
-import { hasRole } from '@/lib/role-helpers'
 
 export default async function LogisticsLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  if (profileError || !profile) {
-    redirect('/auth/login')
-  }
-
-  if (!hasRole(profile.role, ['admin', 'logistics'])) {
-    redirect('/')
+  // Create a dummy profile for the sidebar since no auth is required
+  const dummyProfile = {
+    id: 'demo-user',
+    email: 'demo@example.com',
+    full_name: 'Demo User',
+    role: 'logistics',
+    assigned_station_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   }
 
   return (
     <div className="min-h-screen flex bg-background">
-      <LogisticsSidebar profile={profile} />
+      <LogisticsSidebar profile={dummyProfile} />
       <main className="flex-1 overflow-auto">
         {children}
       </main>

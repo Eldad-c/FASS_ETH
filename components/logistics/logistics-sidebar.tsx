@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Fuel,
@@ -11,10 +11,8 @@ import {
   MapPin,
   Package,
   Bell,
-  LogOut,
   ChevronLeft,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/types'
 
 interface LogisticsSidebarProps {
@@ -32,13 +30,6 @@ const navItems = [
 
 export function LogisticsSidebar({ profile }: LogisticsSidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/')
-  }
 
   return (
     <aside className="w-64 border-r border-border bg-card flex flex-col">
@@ -96,15 +87,6 @@ export function LogisticsSidebar({ profile }: LogisticsSidebarProps) {
             <p className="text-xs text-muted-foreground capitalize">{profile.role}</p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-destructive hover:text-destructive"
-          size="sm"
-          onClick={handleSignOut}
-        >
-          <LogOut className="h-4 w-4" />
-          Sign Out
-        </Button>
       </div>
     </aside>
   )

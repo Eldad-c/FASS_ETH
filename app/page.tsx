@@ -2,7 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { Header } from '@/components/header'
 import { StationList } from '@/components/station-list'
 import { FuelFilter } from '@/components/fuel-filter'
-import { Fuel, TrendingUp, AlertTriangle, Clock } from 'lucide-react'
+import { Fuel, TrendingUp, AlertTriangle, Clock, LayoutDashboard, Users, Truck, User } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import type { StationWithFuelStatus } from '@/lib/types'
 import MapLoader from '@/components/map-loader' // Import the new MapLoader component
 
@@ -41,6 +43,34 @@ export default async function HomePage() {
           <p className="text-muted-foreground text-sm md:text-base">
             Real-time fuel availability at TotalEnergies stations in Addis Ababa
           </p>
+        </div>
+
+        {/* Dashboard Navigation */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <Button asChild variant="outline" className="flex flex-col items-center justify-center h-24">
+            <Link href="/admin">
+              <LayoutDashboard className="h-6 w-6 mb-2" />
+              <span className="text-sm">Admin Portal</span>
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="flex flex-col items-center justify-center h-24">
+            <Link href="/staff">
+              <Users className="h-6 w-6 mb-2" />
+              <span className="text-sm">Staff Portal</span>
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="flex flex-col items-center justify-center h-24">
+            <Link href="/logistics">
+              <Truck className="h-6 w-6 mb-2" />
+              <span className="text-sm">Logistics Hub</span>
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="flex flex-col items-center justify-center h-24">
+            <Link href="/driver">
+              <User className="h-6 w-6 mb-2" />
+              <span className="text-sm">Driver App</span>
+            </Link>
+          </Button>
         </div>
 
         {/* Stats Overview */}
