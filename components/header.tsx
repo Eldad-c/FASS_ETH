@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Fuel } from 'lucide-react'
+import { Fuel, Truck } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
 export function Header() {
@@ -28,6 +28,12 @@ export function Header() {
             </Button>
             <Button asChild variant={isActive('/admin') ? 'secondary' : 'ghost'} size="sm">
               <Link href="/admin">Admin</Link>
+            </Button>
+            <Button asChild variant={isActive('/logistics') ? 'secondary' : 'ghost'} size="sm">
+              <Link href="/logistics" className="flex items-center gap-1">
+                <Truck className="h-4 w-4" />
+                Logistics
+              </Link>
             </Button>
           </nav>
         </div>
