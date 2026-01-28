@@ -4,6 +4,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Footer } from '@/components/footer'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { SharedProvider } from '@/lib/shared-context'
 import './globals.css'
 
 const inter = Inter({ 
@@ -58,11 +59,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased min-h-screen flex flex-col">
-        <ErrorBoundary>
-          <div className="flex-1">{children}</div>
-          <Footer />
-          <Analytics />
-        </ErrorBoundary>
+        <SharedProvider>
+          <ErrorBoundary>
+            <div className="flex-1">{children}</div>
+            <Footer />
+            <Analytics />
+          </ErrorBoundary>
+        </SharedProvider>
       </body>
     </html>
   )

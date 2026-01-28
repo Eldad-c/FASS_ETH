@@ -16,10 +16,11 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Edit2, AlertCircle, CheckCircle2, Trash2 } from 'lucide-react'
-import { initialReports, Report } from '@/lib/reports-data'
+import { useShared } from '@/lib/shared-context'
 
 interface FuelStatus {
   id: string
+  station_id: string
   fuel_type: string
   status: string
   is_available: boolean
@@ -39,12 +40,12 @@ interface FuelReport {
 }
 
 export default function StaffPage() {
+  const shared = useShared()
   const [loading, setLoading] = useState(true)
   const [stations, setStations] = useState<any[]>([])
   const [selectedStation, setSelectedStation] = useState('')
   const [fuelStatus, setFuelStatus] = useState<FuelStatus[]>([])
   const [reports, setReports] = useState<FuelReport[]>([])
-  const [systemReports, setSystemReports] = useState<Report[]>(initialReports)
   const [refreshing, setRefreshing] = useState(false)
   
   // Modal state
@@ -97,38 +98,34 @@ export default function StaffPage() {
   const loadFuelStatus = async (stationId: string) => {
     const { data } = await supabase
       .from('fuel_status')
-      .select('id, fuel_type, status, is_available, queue_level, price_per_liter')
+      .select('*')
       .eq('station_id', stationId)
     
-    setFuelStatus(data || [])
+    if (data) {
+      setFuelStatus(data as FuelStatus[])
+      // Broadcast updates to shared context
+      data.forEach(fuel => {
+        shared.setFuelUpdate(`${stationId}-${fuel.fuel_type}`, fuel)
+      })
+    }
   }
 
   const loadReports = async (stationId: string) => {
     const { data } = await supabase
-      .from('fuel_reports')
+      .from('user_reports')
       .select('*')
       .eq('station_id', stationId)
+      .eq('status', 'pending')
       .order('created_at', { ascending: false })
-      .limit(10)
     
-    setReports(data || [])
-  }
-
-  const handleStationChange = (value: string) => {
-    setSelectedStation(value)
-  }
-
-  const getQueueLabel = (queueLevel: number): string => {
-    if (queueLevel < 5) return 'Short Queue'        // 0-4 cars
-    if (queueLevel <= 15) return 'Medium Queue'     // 5-15 cars
-    return 'High Queue'                              // 16+ cars
+    setReports(data as FuelReport[] || [])
   }
 
   const openEditModal = (fuel: FuelStatus) => {
     setEditingFuel(fuel)
     setModalStatus(fuel.status)
     setModalQueueLevel(fuel.queue_level.toString())
-    setModalPrice(fuel.price_per_liter.toString())
+    setModalPrice(fuel.price_per_liter?.toString() || '')
   }
 
   const closeEditModal = () => {
@@ -149,10 +146,15 @@ export default function StaffPage() {
           status: modalStatus,
           queue_level: parseInt(modalQueueLevel) || 0,
           price_per_liter: parseFloat(modalPrice) || 0,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', editingFuel.id)
       
       if (error) throw error
+      
+      // Update shared context
+      const updatedFuel = { ...editingFuel, status: modalStatus, queue_level: parseInt(modalQueueLevel), price_per_liter: parseFloat(modalPrice) }
+      shared.setFuelUpdate(`${selectedStation}-${editingFuel.fuel_type}`, updatedFuel)
       
       await loadFuelStatus(selectedStation)
       closeEditModal()
@@ -164,57 +166,29 @@ export default function StaffPage() {
   }
 
   const confirmReport = (reportId: string) => {
-    setSystemReports((prev) =>
-      prev.map((report) =>
-        report.id === reportId
-          ? { ...report, status: 'confirmed', confirmedAt: new Date().toISOString() }
-          : report
-      )
-    )
+    shared.confirmReport(reportId)
+    setReports(prev => prev.filter(r => r.id !== reportId))
   }
 
   const deleteReport = (reportId: string) => {
-    setSystemReports((prev) => prev.filter((report) => report.id !== reportId))
+    shared.deleteReport(reportId)
+    setReports(prev => prev.filter(r => r.id !== reportId))
   }
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  const getQueueLabel = (level: number) => {
+    if (level <= 3) return 'Short'
+    if (level <= 6) return 'Medium'
+    return 'Long'
+  }
 
-  const currentStation = stations.find(s => s.id === selectedStation)
-  const statusColors = {
-    available: 'bg-green-500/10 text-green-700 border-green-500/20',
-    low: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
-    out_of_stock: 'bg-red-500/10 text-red-700 border-red-500/20',
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Staff Portal</h1>
-          <p className="text-muted-foreground mt-1">Update fuel availability and pricing in real-time</p>
-        </div>
-
-        {/* Station Selection */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Select Station</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select value={selectedStation} onValueChange={handleStationChange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {stations.map((station) => (
-                  <SelectItem key={station.id} value={station.id}>
-                    {station.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">Staff Portal - Fuel Status Updates</h1>
 
         {/* System Reports Section */}
         <Card className="mb-6">
@@ -226,10 +200,10 @@ export default function StaffPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {systemReports.filter(r => r.status === 'pending').length === 0 ? (
+              {shared.reports.filter(r => r.status === 'pending').length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">No pending reports</p>
               ) : (
-                systemReports
+                shared.reports
                   .filter(r => r.status === 'pending')
                   .map((report) => (
                     <div key={report.id} className="p-4 border border-border rounded-lg bg-muted/50">
@@ -274,17 +248,17 @@ export default function StaffPage() {
         </Card>
 
         {/* Confirmed Reports */}
-        {systemReports.filter(r => r.status === 'confirmed').length > 0 && (
+        {shared.reports.filter(r => r.status === 'confirmed').length > 0 && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <CheckCircle2 className="h-4 w-4" />
-                Confirmed Reports ({systemReports.filter(r => r.status === 'confirmed').length})
+                Confirmed Reports ({shared.reports.filter(r => r.status === 'confirmed').length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {systemReports
+                {shared.reports
                   .filter(r => r.status === 'confirmed')
                   .map((report) => (
                     <div key={report.id} className="p-3 border border-green-200/50 bg-green-50/50 dark:bg-green-950/20 rounded-lg text-sm">
@@ -299,186 +273,119 @@ export default function StaffPage() {
           </Card>
         )}
 
-        {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Fuel Status - Left Column (2/3) */}
-          <div className="lg:col-span-2">
-            <div className="grid gap-4">
-              <h2 className="text-xl font-semibold text-foreground mb-2">Fuel Status at {currentStation?.name}</h2>
-              
-              {fuelStatus.length === 0 ? (
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-muted-foreground text-center">No fuel status data available</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                fuelStatus.map((fuel) => (
-                  <Card key={fuel.id} className="overflow-hidden hover:border-primary/50 transition-colors">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-4">
-                            <h3 className="text-lg font-semibold text-foreground capitalize">
-                              {fuel.fuel_type.replace('_', ' ')}
-                            </h3>
-                            <Badge 
-                              variant="outline"
-                              className={statusColors[fuel.status as keyof typeof statusColors] || 'bg-gray-500/10 text-gray-700'}
-                            >
-                              {fuel.status.replace('_', ' ')}
-                            </Badge>
-                          </div>
+        {/* Station Selection */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Select Station</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedStation} onValueChange={setSelectedStation}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a station" />
+              </SelectTrigger>
+              <SelectContent>
+                {stations.map((station) => (
+                  <SelectItem key={station.id} value={station.id}>
+                    {station.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
-                          <div className="grid grid-cols-3 gap-4 mb-4">
-                          <div className="p-3 bg-muted/50 rounded-lg">
-                              <p className="text-xs text-muted-foreground mb-1">Queue Level</p>
-                              <p className="text-lg font-bold text-foreground">{getQueueLabel(fuel.queue_level)}</p>
-                            </div>
-                            <div className="p-3 bg-muted/50 rounded-lg">
-                              <p className="text-xs text-muted-foreground mb-1">Price</p>
-                              <p className="text-lg font-bold text-foreground">ETB {fuel.price_per_liter.toFixed(2)}/L</p>
-                            </div>
-                            <div className="p-3 bg-muted/50 rounded-lg">
-                              <p className="text-xs text-muted-foreground mb-1">Availability</p>
-                              <p className="text-lg font-bold text-foreground">
-                                {fuel.is_available ? 'In Stock' : 'Out of Stock'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <Button
-                          onClick={() => openEditModal(fuel)}
-                          variant="outline"
-                          size="sm"
-                          className="gap-2 whitespace-nowrap"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                          Edit
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Reports - Right Column (1/3) */}
-          <div className="lg:col-span-1">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <AlertCircle className="h-4 w-4" />
-                  Recent Reports
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {reports.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">No reports yet</p>
-                  ) : (
-                    reports.map((report) => (
-                      <div key={report.id} className="p-3 bg-muted/50 rounded-lg border border-border/50">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <p className="text-sm font-medium capitalize">{report.fuel_type.replace('_', ' ')}</p>
-                          <Badge variant="outline" className="text-xs">
-                            {report.reported_status.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{report.reporter_email}</p>
-                        {report.description && (
-                          <p className="text-xs text-muted-foreground mt-1">{report.description}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(report.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    ))
-                  )}
+        {/* Fuel Status Grid */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Fuel Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {fuelStatus.map((fuel) => (
+                <div key={fuel.id} className="border border-border rounded-lg p-4">
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-lg capitalize">{fuel.fuel_type.replace('_', ' ')}</h3>
+                    <Badge className="mt-1" variant={fuel.status === 'available' ? 'default' : fuel.status === 'low' ? 'secondary' : 'destructive'}>
+                      {fuel.status}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-xs text-muted-foreground mb-1">Queue Level</p>
+                      <p className="text-lg font-bold text-foreground">{getQueueLabel(fuel.queue_level)}</p>
+                    </div>
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-xs text-muted-foreground mb-1">Price per Liter</p>
+                      <p className="text-lg font-bold text-foreground">ETB {fuel.price_per_liter?.toFixed(2) || '-'}</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => openEditModal(fuel)}
+                    className="w-full gap-2"
+                    variant="outline"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    Edit
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Edit Modal */}
-      <Dialog open={!!editingFuel} onOpenChange={(open) => !open && closeEditModal()}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Update {editingFuel?.fuel_type.replace('_', ' ')} Status
-            </DialogTitle>
-            <DialogDescription>
-              Modify the fuel status, queue level, and pricing information
-            </DialogDescription>
-          </DialogHeader>
-
-          {editingFuel && (
+        {/* Edit Modal */}
+        <Dialog open={!!editingFuel} onOpenChange={(open) => !open && closeEditModal()}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Fuel Status</DialogTitle>
+              <DialogDescription>
+                Updating {editingFuel?.fuel_type.replace('_', ' ')}
+              </DialogDescription>
+            </DialogHeader>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Fuel Status *</label>
+                <label className="text-sm font-medium">Status</label>
                 <Select value={modalStatus} onValueChange={setModalStatus}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="available">Available</SelectItem>
-                    <SelectItem value="low">Low Stock</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="out_of_stock">Out of Stock</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <label className="text-sm font-medium mb-2 block">Queue Level (cars) *</label>
+                <label className="text-sm font-medium">Queue Level</label>
                 <Input
                   type="number"
-                  min="0"
                   value={modalQueueLevel}
                   onChange={(e) => setModalQueueLevel(e.target.value)}
-                  placeholder="0"
+                  min="0"
+                  max="10"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {getQueueLabel(parseInt(modalQueueLevel) || 0)}
-                </p>
               </div>
-
               <div>
-                <label className="text-sm font-medium mb-2 block">Price per Liter (ETB) *</label>
+                <label className="text-sm font-medium">Price per Liter (ETB)</label>
                 <Input
                   type="number"
-                  step="0.01"
-                  min="0"
                   value={modalPrice}
                   onChange={(e) => setModalPrice(e.target.value)}
-                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
                 />
               </div>
             </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={closeEditModal}
-              disabled={submitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={saveFuelStatus}
-              disabled={submitting || !modalStatus || !modalQueueLevel || !modalPrice}
-            >
-              {submitting ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={closeEditModal}>Cancel</Button>
+              <Button onClick={saveFuelStatus} disabled={submitting}>
+                {submitting ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   )
 }

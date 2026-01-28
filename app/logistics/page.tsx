@@ -10,6 +10,7 @@ import LogisticsMapComponent from '@/components/logistics-map'
 import { RouteEditorModal } from '@/components/route-editor-modal'
 import { DeliveryReportModal } from '@/components/delivery-report-modal'
 import { sampleTankers, sampleStations, sampleDeliveries, sampleRestockingTimes } from '@/lib/sample-data'
+import { useShared } from '@/lib/shared-context'
 
 interface Delivery {
   id: string
@@ -22,6 +23,7 @@ interface Delivery {
 }
 
 export default function LogisticsHubPage() {
+  const shared = useShared()
   const [selectedTanker, setSelectedTanker] = useState<string | null>(null)
   const [routeEditorOpen, setRouteEditorOpen] = useState(false)
   const [reportViewOpen, setReportViewOpen] = useState(false)
@@ -283,6 +285,37 @@ export default function LogisticsHubPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Driver Issues */}
+          {shared.routeIssues.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  Driver Issues ({shared.routeIssues.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {shared.routeIssues.map((issue) => (
+                    <div key={issue.id} className="p-3 border border-yellow-200/50 bg-yellow-50/50 dark:bg-yellow-950/20 rounded-lg">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">{issue.issue}</p>
+                          <p className="text-xs text-yellow-800 dark:text-yellow-200 mt-1">
+                            {new Date(issue.timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className={issue.resolved ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-700'}>
+                          {issue.resolved ? 'Resolved' : 'Active'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
 

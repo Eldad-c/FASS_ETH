@@ -1,21 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { ChevronLeft, Truck, MapPin, AlertCircle, Send, Navigation, Clock, Package, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, Truck, MapPin, AlertCircle, Send, Navigation, Clock, Package, CheckCircle2, Copy, MapArrowRight } from 'lucide-react'
 import { sampleTankers, sampleStations } from '@/lib/sample-data'
 import { DriverMap } from '@/components/driver-map'
-
-interface RouteUpdate {
-  id: string
-  timestamp: string
-  message: string
-  priority: 'low' | 'normal' | 'high'
-}
+import { useShared } from '@/lib/shared-context'
 
 interface RouteIssue {
   id: string
@@ -25,30 +19,18 @@ interface RouteIssue {
 }
 
 export default function DriverPage() {
+  const shared = useShared()
   const [selectedDriver, setSelectedDriver] = useState(sampleTankers[0])
   const [issueReport, setIssueReport] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [reportedIssues, setReportedIssues] = useState<RouteIssue[]>([
-    {
-      id: 'issue-001',
-      issue: 'Traffic congestion on route to Bole station',
-      timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
-      resolved: false,
-    },
-  ])
-  const [routeUpdates, setRouteUpdates] = useState<RouteUpdate[]>([
+  const [locationCopied, setLocationCopied] = useState(false)
+  const [routeUpdates, setRouteUpdates] = useState<any[]>([
     {
       id: 'update-001',
       timestamp: new Date(Date.now() - 10 * 60000).toISOString(),
-      message: 'Route updated: New destination - TotalEnergies Sarbet',
+      message: 'Route updated: New destination assigned',
       priority: 'high',
-    },
-    {
-      id: 'update-002',
-      timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
-      message: 'Safe driving reminder: Slow down in residential areas',
-      priority: 'normal',
     },
   ])
 
@@ -69,30 +51,29 @@ export default function DriverPage() {
       resolved: false,
     }
 
-    setReportedIssues([newIssue, ...reportedIssues])
+    shared.addRouteIssue(newIssue)
     setIssueReport('')
     setSubmitting(false)
     setSubmitSuccess(true)
     
-    // Clear success message after 3 seconds
     setTimeout(() => setSubmitSuccess(false), 3000)
   }
 
-  const getTimeAgo = (timestamp: string) => {
-    const diffMinutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000)
-    if (diffMinutes < 1) return 'Just now'
-    if (diffMinutes < 60) return `${diffMinutes}m ago`
-    return `${Math.floor(diffMinutes / 60)}h ago`
+  const handleShareLocation = async () => {
+    const location = `https://maps.google.com/?q=${selectedDriver.latitude},${selectedDriver.longitude}`
+    try {
+      await navigator.clipboard.writeText(location)
+      setLocationCopied(true)
+      setTimeout(() => setLocationCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy location:', error)
+    }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-500/10 text-red-700 border-red-500/20'
-      case 'normal':
-        return 'bg-blue-500/10 text-blue-700 border-blue-500/20'
-      default:
-        return 'bg-gray-500/10 text-gray-700 border-gray-500/20'
+  const handleOpenMaps = () => {
+    if (currentDestination) {
+      const url = `https://www.google.com/maps/dir/${selectedDriver.latitude},${selectedDriver.longitude}/${currentDestination.latitude},${currentDestination.longitude}`
+      window.open(url, '_blank')
     }
   }
 
@@ -113,13 +94,13 @@ export default function DriverPage() {
                 <Truck className="h-6 w-6 text-blue-600" />
                 Driver Portal
               </h1>
-              <p className="text-sm text-muted-foreground">Live tracking & route management</p>
+              <p className="text-sm text-muted-foreground">Real-time delivery tracking</p>
             </div>
           </div>
-          <Badge className="bg-green-500/10 text-green-700 border border-green-500/20">
-            <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-            Active Delivery
-          </Badge>
+          <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-700 rounded-full text-sm">
+            <Navigation className="h-4 w-4" />
+            Live Route
+          </div>
         </div>
       </header>
 
@@ -147,95 +128,115 @@ export default function DriverPage() {
 
         {/* Driver Info & Location */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Driver Overview */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle className="text-base">Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Tanker</p>
-                  <p className="text-lg font-semibold">{selectedDriver.plate}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Current Status</p>
-                  <Badge variant="outline" className="bg-green-500/10 text-green-700 capitalize">
-                    {selectedDriver.status.replace('_', ' ')}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Current Location</p>
-                  <p className="text-sm font-medium">{selectedDriver.latitude.toFixed(4)}, {selectedDriver.longitude.toFixed(4)}</p>
-                </div>
-                <Button className="w-full gap-2" variant="outline">
-                  <Navigation className="h-4 w-4" />
-                  Share Location
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Route Information */}
+          {/* Current Trip */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Current Route
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Current Trip Details
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">From</p>
-                    <p className="font-semibold text-sm">Distribution Center</p>
-                    <p className="text-xs text-muted-foreground">Addis Ababa</p>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Tanker</p>
+                  <p className="text-lg font-semibold">{selectedDriver.plate}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Destination</p>
+                  <p className="text-lg font-semibold">{currentDestination?.name}</p>
+                  <p className="text-sm text-muted-foreground">{currentDestination?.address}</p>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Fuel Type</p>
+                    <p className="font-semibold capitalize">Diesel</p>
                   </div>
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">To</p>
-                    <p className="font-semibold text-sm">{currentDestination?.name}</p>
-                    <p className="text-xs text-muted-foreground">{currentDestination?.name}</p>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Quantity</p>
+                    <p className="font-semibold">20,000L</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">ETA</p>
+                    <p className="font-semibold">30 mins</p>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Delivery Details</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-sm">
-                    <div className="p-2 bg-muted/50 rounded">
-                      <p className="text-xs text-muted-foreground">Fuel Type</p>
-                      <p className="font-semibold">Diesel</p>
-                    </div>
-                    <div className="p-2 bg-muted/50 rounded">
-                      <p className="text-xs text-muted-foreground">Quantity</p>
-                      <p className="font-semibold">20,000L</p>
-                    </div>
-                    <div className="p-2 bg-muted/50 rounded">
-                      <p className="text-xs text-muted-foreground">ETA</p>
-                      <p className="font-semibold">30 min</p>
-                    </div>
-                  </div>
-                </div>
-
-                <Button className="w-full gap-2">
-                  <Navigation className="h-4 w-4" />
+          {/* Location Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Location Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button 
+                  onClick={handleShareLocation}
+                  className="w-full gap-2"
+                  variant="outline"
+                >
+                  <Copy className="h-4 w-4" />
+                  {locationCopied ? 'Copied!' : 'Share Location'}
+                </Button>
+                <Button 
+                  onClick={handleOpenMaps}
+                  className="w-full gap-2"
+                >
+                  <MapArrowRight className="h-4 w-4" />
                   Open in Maps
                 </Button>
+                <div className="mt-4 p-3 bg-muted rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Current Coordinates</p>
+                  <p className="text-sm font-mono">{selectedDriver.latitude.toFixed(4)}, {selectedDriver.longitude.toFixed(4)}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Issues & Updates */}
+        {/* Route Updates & Issue Reporting */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Report Route Issues */}
+          {/* Route Updates */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Navigation className="h-4 w-4" />
+                Route Updates
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {routeUpdates.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">No route updates yet</p>
+                ) : (
+                  routeUpdates.map((update) => (
+                    <div key={update.id} className={`p-3 border rounded-lg ${update.priority === 'high' ? 'border-red-200/50 bg-red-50/50 dark:bg-red-950/20' : 'border-border bg-muted/50'}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{update.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(update.timestamp).toLocaleTimeString()}
+                          </p>
+                        </div>
+                        {update.priority === 'high' && (
+                          <Badge className="bg-red-600">High</Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Issue Reporting */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <AlertCircle className="h-4 w-4" />
-                Report Issues
+                Report Route Issue
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -270,53 +271,41 @@ export default function DriverPage() {
                     </>
                   )}
                 </Button>
-
-                {/* Reported Issues */}
-                <div className="mt-4">
-                  <p className="text-sm font-semibold mb-2">Recent Issues</p>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {reportedIssues.map((issue) => (
-                      <div key={issue.id} className="p-2 bg-muted/50 rounded border border-border/50">
-                        <div className="flex justify-between items-start gap-2 mb-1">
-                          <p className="text-xs font-medium flex-1">{issue.issue}</p>
-                          <Badge variant="outline" className="text-xs">
-                            {issue.resolved ? 'Resolved' : 'Open'}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{getTimeAgo(issue.timestamp)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Route Updates from Logistics */}
-          <Card>
+        {/* Reported Issues */}
+        {shared.routeIssues.length > 0 && (
+          <Card className="mt-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Truck className="h-4 w-4" />
-                Route Updates
+                <AlertCircle className="h-4 w-4" />
+                Your Reported Issues ({shared.routeIssues.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {routeUpdates.map((update) => (
-                  <div key={update.id} className={`p-3 rounded-lg border ${getPriorityColor(update.priority)}`}>
-                    <div className="flex justify-between items-start gap-2 mb-2">
-                      <p className="text-sm font-medium flex-1">{update.message}</p>
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {update.priority}
+              <div className="space-y-2">
+                {shared.routeIssues.map((issue) => (
+                  <div key={issue.id} className="p-3 border border-border rounded-lg bg-muted/50">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-sm">{issue.issue}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(issue.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className={issue.resolved ? 'bg-green-500/10 text-green-700' : 'bg-yellow-500/10 text-yellow-700'}>
+                        {issue.resolved ? 'Resolved' : 'Pending'}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">{getTimeAgo(update.timestamp)}</p>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
-        </div>
+        )}
       </main>
     </div>
   )
