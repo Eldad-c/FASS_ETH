@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { MapPin, Fuel, Navigation, Clock, Users, X, Locate, Route } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { StationWithFuelStatus, AvailabilityStatus, QueueLevel } from '@/lib/types'
-import type * as L from 'leaflet'
 
 interface StationMapProps {
   stations: StationWithFuelStatus[];
@@ -55,16 +54,22 @@ const getDominantQueueLevel = (station: StationWithFuelStatus): QueueLevel => {
 };
 
 export function StationMap({ stations }: StationMapProps) {
-  const mapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const searchParams = useSearchParams();
   const [selectedStation, setSelectedStation] = useState<StationWithFuelStatus | null>(null);
-  const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
+  const [userLocation, setUserLocation] = useState<any>(null);
+  const [L, setL] = useState<any>(null);
+
+  // Load Leaflet dynamically
+  useEffect(() => {
+    import('leaflet').then(leaflet => {
+      setL(leaflet.default);
+    });
+  }, []);
 
   const initMap = useCallback(() => {
-    if (mapContainerRef.current && !mapRef.current) {
-      const L = require('leaflet');
-      
+    if (mapContainerRef.current && !mapRef.current && L) {
       const map = L.map(mapContainerRef.current, {
         center: [9.0054, 38.7636], // Default to Addis Ababa
         zoom: 12,
@@ -81,7 +86,7 @@ export function StationMap({ stations }: StationMapProps) {
         map.invalidateSize();
       }, 100);
     }
-  }, []);
+  }, [L]);
 
   useEffect(() => {
     initMap();
@@ -89,10 +94,9 @@ export function StationMap({ stations }: StationMapProps) {
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
-    const L = require('leaflet');
+    if (!map || !L) return;
 
-    map.eachLayer((layer) => {
+    map.eachLayer((layer: any) => {
       if (layer instanceof L.Marker) {
         map.removeLayer(layer);
       }
@@ -122,13 +126,12 @@ export function StationMap({ stations }: StationMapProps) {
       marker.on('click', () => setSelectedStation(station));
     });
 
-  }, [stations]);
+  }, [stations, L]);
 
   const handleLocateUser = () => {
-    if (navigator.geolocation) {
+    if (navigator.geolocation && L) {
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude, longitude } = position.coords;
-        const L = require('leaflet');
         const latLng = new L.LatLng(latitude, longitude);
         setUserLocation(latLng);
         mapRef.current?.setView(latLng, 14);
