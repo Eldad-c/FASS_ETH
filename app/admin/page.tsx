@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Users, Fuel, AlertCircle } from 'lucide-react'
+import { Building2, Fuel, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 interface FuelReport {
@@ -99,7 +99,7 @@ export default function AdminPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
+        <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Stations</CardTitle>
@@ -107,16 +107,6 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.stations}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.users}</div>
             </CardContent>
           </Card>
 
