@@ -6,13 +6,40 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Edit2 } from 'lucide-react'
+
+interface FuelStatus {
+  id: string
+  fuel_type: string
+  status: string
+  is_available: boolean
+  queue_level: number
+  price_per_liter: number
+}
 
 export default function StaffPage() {
   const [loading, setLoading] = useState(true)
   const [stations, setStations] = useState<any[]>([])
   const [selectedStation, setSelectedStation] = useState('')
-  const [fuelStatus, setFuelStatus] = useState<any[]>([])
+  const [fuelStatus, setFuelStatus] = useState<FuelStatus[]>([])
   const [refreshing, setRefreshing] = useState(false)
+  
+  // Modal state
+  const [editingFuel, setEditingFuel] = useState<FuelStatus | null>(null)
+  const [modalStatus, setModalStatus] = useState('')
+  const [modalQueueLevel, setModalQueueLevel] = useState('')
+  const [modalPrice, setModalPrice] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  
   const supabase = createClient()
 
   useEffect(() => {
@@ -47,30 +74,61 @@ export default function StaffPage() {
     loadFuelStatus(value)
   }
 
-  const updateFuelStatus = async (fuelStatusId: string, newStatus: string) => {
-    setRefreshing(true)
-    const { error } = await supabase
-      .from('fuel_status')
-      .update({ status: newStatus })
-      .eq('id', fuelStatusId)
+  const openEditModal = (fuel: FuelStatus) => {
+    setEditingFuel(fuel)
+    setModalStatus(fuel.status)
+    setModalQueueLevel(fuel.queue_level.toString())
+    setModalPrice(fuel.price_per_liter.toString())
+  }
+
+  const closeEditModal = () => {
+    setEditingFuel(null)
+    setModalStatus('')
+    setModalQueueLevel('')
+    setModalPrice('')
+  }
+
+  const saveFuelStatus = async () => {
+    if (!editingFuel) return
     
-    if (!error) {
-      loadFuelStatus(selectedStation)
+    setSubmitting(true)
+    try {
+      const { error } = await supabase
+        .from('fuel_status')
+        .update({
+          status: modalStatus,
+          queue_level: parseInt(modalQueueLevel) || 0,
+          price_per_liter: parseFloat(modalPrice) || 0,
+        })
+        .eq('id', editingFuel.id)
+      
+      if (error) throw error
+      
+      await loadFuelStatus(selectedStation)
+      closeEditModal()
+    } catch (error) {
+      console.error('Error updating fuel status:', error)
+    } finally {
+      setSubmitting(false)
     }
-    setRefreshing(false)
   }
 
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
 
   const currentStation = stations.find(s => s.id === selectedStation)
+  const statusColors = {
+    available: 'bg-green-500/10 text-green-700 border-green-500/20',
+    low: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+    out_of_stock: 'bg-red-500/10 text-red-700 border-red-500/20',
+  }
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Staff Portal</h1>
-          <p className="text-muted-foreground mt-1">Manage fuel availability at your station</p>
+          <p className="text-muted-foreground mt-1">Update fuel availability and pricing in real-time</p>
         </div>
 
         {/* Station Selection */}
@@ -94,65 +152,141 @@ export default function StaffPage() {
           </CardContent>
         </Card>
 
-        {/* Fuel Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Fuel Status at {currentStation?.name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {fuelStatus.length === 0 ? (
-                <p className="text-muted-foreground">No fuel status data</p>
-              ) : (
-                fuelStatus.map((fuel) => (
-                  <div key={fuel.id} className="flex items-center justify-between p-4 border rounded-lg">
+        {/* Fuel Status Grid */}
+        <div className="grid gap-4">
+          <h2 className="text-xl font-semibold text-foreground mb-2">Fuel Status at {currentStation?.name}</h2>
+          
+          {fuelStatus.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-muted-foreground text-center">No fuel status data available</p>
+              </CardContent>
+            </Card>
+          ) : (
+            fuelStatus.map((fuel) => (
+              <Card key={fuel.id} className="overflow-hidden hover:border-primary/50 transition-colors">
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="font-medium text-foreground capitalize">{fuel.fuel_type.replace('_', ' ')}</div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        Status: <Badge variant={fuel.is_available ? 'default' : 'destructive'}>
-                          {fuel.is_available ? 'Available' : 'Out of Stock'}
+                      <div className="flex items-center gap-3 mb-4">
+                        <h3 className="text-lg font-semibold text-foreground capitalize">
+                          {fuel.fuel_type.replace('_', ' ')}
+                        </h3>
+                        <Badge 
+                          variant="outline"
+                          className={statusColors[fuel.status as keyof typeof statusColors] || 'bg-gray-500/10 text-gray-700'}
+                        >
+                          {fuel.status.replace('_', ' ')}
                         </Badge>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Queue: <Badge variant="outline">{fuel.queue_level}</Badge>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Price: ETB {fuel.price_per_liter}/L
+
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">Queue Level</p>
+                          <p className="text-lg font-bold text-foreground">{fuel.queue_level} cars</p>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">Price</p>
+                          <p className="text-lg font-bold text-foreground">ETB {fuel.price_per_liter.toFixed(2)}/L</p>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">Availability</p>
+                          <p className="text-lg font-bold text-foreground">
+                            {fuel.is_available ? 'In Stock' : 'Out of Stock'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="default"
-                        onClick={() => updateFuelStatus(fuel.id, 'available')}
-                        disabled={refreshing}
-                      >
-                        Available
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => updateFuelStatus(fuel.id, 'low')}
-                        disabled={refreshing}
-                      >
-                        Low
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => updateFuelStatus(fuel.id, 'out_of_stock')}
-                        disabled={refreshing}
-                      >
-                        Out
-                      </Button>
-                    </div>
+
+                    <Button
+                      onClick={() => openEditModal(fuel)}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      Edit
+                    </Button>
                   </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
+
+      {/* Edit Modal */}
+      <Dialog open={!!editingFuel} onOpenChange={(open) => !open && closeEditModal()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Update {editingFuel?.fuel_type.replace('_', ' ')} Status
+            </DialogTitle>
+            <DialogDescription>
+              Modify the fuel status, queue level, and pricing information
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingFuel && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Fuel Status *</label>
+                <Select value={modalStatus} onValueChange={setModalStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="low">Low Stock</SelectItem>
+                    <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Queue Level (cars) *</label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={modalQueueLevel}
+                  onChange={(e) => setModalQueueLevel(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Price per Liter (ETB) *</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={modalPrice}
+                  onChange={(e) => setModalPrice(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeEditModal}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={saveFuelStatus}
+              disabled={submitting || !modalStatus || !modalQueueLevel || !modalPrice}
+            >
+              {submitting ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

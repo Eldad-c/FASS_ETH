@@ -1,7 +1,7 @@
 import React from "react"
 import { Header } from '@/components/header'
 
-export default function AdminLayout({
+export default function StaffLayout({
   children,
 }: {
   children: React.ReactNode

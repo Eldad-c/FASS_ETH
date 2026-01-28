@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Header } from '@/components/header'
 import { StationList } from '@/components/station-list'
+import { FuelReportForm } from '@/components/fuel-report-form'
 import { Fuel, TrendingUp, AlertTriangle } from 'lucide-react'
 import type { StationWithFuelStatus } from '@/lib/types'
 import MapLoader from '@/components/map-loader'
@@ -115,13 +116,18 @@ export default async function HomePage() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="order-2 lg:order-1">
+        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <StationList stations={stationsWithFuel} />
           </div>
           <div className="order-1 lg:order-2 h-[500px] lg:h-[600px] sticky top-20 rounded-lg overflow-hidden border border-border">
             <MapLoader stations={stationsWithFuel} />
           </div>
+        </div>
+
+        {/* Report Form */}
+        <div className="max-w-md">
+          <FuelReportForm stations={stationsWithFuel} />
         </div>
       </main>
     </div>
