@@ -13,22 +13,22 @@ import {
   CheckCircle,
   Truck,
   Play,
-  LogOut,
   RefreshCw,
   Map,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import { DeliveryMap } from '@/components/driver/delivery-map'
-import type { Trip, Tanker, Profile, Station } from '@/lib/types'
+import type { Trip, Tanker, Station } from '@/lib/types'
 
 interface TripWithDetails extends Trip {
   destination_station?: Station
 }
 
 export default function DriverPage() {
-  const router = useRouter()
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile] = useState({
+    full_name: 'Demo Driver',
+    email: 'driver@demo.example.com',
+  })
   const [tanker, setTanker] = useState<Tanker | null>(null)
   const [currentTrip, setCurrentTrip] = useState<TripWithDetails | null>(null)
   const [upcomingTrips, setUpcomingTrips] = useState<TripWithDetails[]>([])
@@ -41,53 +41,33 @@ export default function DriverPage() {
     // Update location every 30 seconds
     const locationInterval = setInterval(updateLocation, 30000)
     return () => clearInterval(locationInterval)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchData = async () => {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) return
-
-    // Get profile
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (profileError) {
-      console.error('Failed to load driver profile:', profileError)
-    }
-
-    setProfile(profileData)
-
-    // Get assigned tanker
+    // Get first active tanker for demo
     const { data: tankerData, error: tankerError } = await supabase
       .from('tankers')
       .select('*')
-      .eq('driver_id', user.id)
+      .eq('status', 'available')
+      .limit(1)
       .maybeSingle()
 
     if (tankerError) {
-      console.error('Failed to load assigned tanker:', tankerError)
+      console.error('Failed to load tanker:', tankerError)
     }
 
     setTanker(tankerData)
 
     if (tankerData) {
       // Get current active trip
-      const { data: currentTripData, error: currentTripError } = await supabase
+      const { data: currentTripData } = await supabase
         .from('trips')
         .select('*, destination_station:stations!trips_destination_station_id_fkey(*)')
         .eq('tanker_id', tankerData.id)
         .eq('status', 'in_progress')
         .maybeSingle()
-
-      if (currentTripError) {
-        console.error('Failed to load current trip:', currentTripError)
-      }
 
       setCurrentTrip(currentTripData)
 
@@ -201,7 +181,7 @@ export default function DriverPage() {
       })
       .eq('id', currentTrip.id)
 
-    // Create delivery record (SDS Delivery: volume_delivered, delivery_timestamp, status)
+    // Create delivery record
     const volume = currentTrip.quantity_liters ?? 0
     await supabase.from('deliveries').insert({
       trip_id: currentTrip.id,
@@ -223,12 +203,6 @@ export default function DriverPage() {
     }
 
     fetchData()
-  }
-
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/')
   }
 
   const openNavigation = () => {
@@ -255,9 +229,6 @@ export default function DriverPage() {
               <p className="text-xs text-muted-foreground">Driver App</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4" />
-          </Button>
         </div>
       </header>
 
@@ -287,11 +258,11 @@ export default function DriverPage() {
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
                   <span className="text-lg font-bold">
-                    {profile?.full_name?.charAt(0) || 'D'}
+                    {profile.full_name?.charAt(0) || 'D'}
                   </span>
                 </div>
                 <div>
-                  <p className="font-semibold">{profile?.full_name || 'Driver'}</p>
+                  <p className="font-semibold">{profile.full_name || 'Driver'}</p>
                   <p className="text-sm text-muted-foreground">
                     {tanker ? `Tanker: ${tanker.plate_number}` : 'No tanker assigned'}
                   </p>

@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
-import { isManager } from '@/lib/role-helpers'
+import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,24 +13,6 @@ export default async function ApprovalReviewPage({
   params: { id: string }
 }) {
   const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  if (!profile || !isManager(profile.role)) {
-    redirect('/')
-  }
 
   // Get pending approval details
   const { data: approval, error: approvalError } = await supabase
@@ -48,11 +29,6 @@ export default async function ApprovalReviewPage({
 
   if (approvalError || !approval) {
     notFound()
-  }
-
-  // Verify this manager can approve this
-  if (approval.manager_id !== user.id) {
-    redirect('/manager')
   }
 
   return (

@@ -1,6 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { isManager } from '@/lib/role-helpers'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react'
@@ -9,32 +7,13 @@ import Link from 'next/link'
 export default async function ManagerPage() {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  if (!profile || !isManager(profile.role)) {
-    redirect('/')
-  }
-
-  // Get stations managed by this manager
+  // Get all stations for demo
   const { data: stations } = await supabase
     .from('stations')
     .select('*')
-    .eq('manager_id', user.id)
     .eq('is_active', true)
 
-  // Get pending approvals
+  // Get pending approvals from all stations
   const { data: pendingApprovals } = await supabase
     .from('pending_approvals')
     .select(`
@@ -44,7 +23,6 @@ export default async function ManagerPage() {
       submitter:profiles!pending_approvals_submitted_by_fkey (name, email)
     `)
     .eq('status', 'PENDING')
-    .eq('manager_id', user.id)
     .order('submitted_at', { ascending: false })
 
   return (
@@ -53,7 +31,7 @@ export default async function ManagerPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Manager Dashboard</h1>
           <p className="text-muted-foreground">
-            Review and approve staff updates for your stations
+            Review and approve staff updates for stations
           </p>
         </div>
 
@@ -140,8 +118,8 @@ export default async function ManagerPage() {
         {/* Managed Stations */}
         <Card>
           <CardHeader>
-            <CardTitle>Managed Stations</CardTitle>
-            <CardDescription>Stations under your management</CardDescription>
+            <CardTitle>All Stations</CardTitle>
+            <CardDescription>Stations in the system</CardDescription>
           </CardHeader>
           <CardContent>
             {stations && stations.length > 0 ? (
@@ -163,7 +141,7 @@ export default async function ManagerPage() {
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                No stations assigned
+                No stations found
               </div>
             )}
           </CardContent>

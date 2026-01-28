@@ -1,30 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { isITSupport } from '@/lib/role-helpers'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Activity, AlertTriangle, Server, Database, Cpu } from 'lucide-react'
 import { ITSupportActions } from './it-support-actions'
 
 export default async function ITSupportPage() {
   const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  if (!profile || !isITSupport(profile.role)) {
-    redirect('/')
-  }
 
   // Get system health and getMetrics (Use Case 7: Maintain System Health)
   // Use VERCEL_URL in production, or construct from environment
