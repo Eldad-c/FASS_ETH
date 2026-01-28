@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Fuel, Menu, X, MapPin } from 'lucide-react'
 import { useState } from 'react'
-import { LanguageSwitcher } from '@/components/language-switcher'
 
 export function Header() {
   const pathname = usePathname()
@@ -41,10 +40,6 @@ export function Header() {
             <Button asChild variant={isActive('/report') ? 'secondary' : 'ghost'} size="sm" className="text-sm">
               <Link href="/report">Report Status</Link>
             </Button>
-            <Button asChild variant={isActive('/subscribe') ? 'secondary' : 'ghost'} size="sm" className="text-sm">
-              <Link href="/subscribe">Alerts</Link>
-            </Button>
-            <LanguageSwitcher />
           </nav>
 
           <Button
@@ -81,15 +76,6 @@ export function Header() {
               >
                 <Link href="/report" onClick={() => setMobileMenuOpen(false)}>
                   Report Status
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant={isActive('/subscribe') ? 'secondary' : 'ghost'}
-                className="w-full justify-start"
-              >
-                <Link href="/subscribe" onClick={() => setMobileMenuOpen(false)}>
-                  Alerts
                 </Link>
               </Button>
             </div>

@@ -10,8 +10,6 @@ import {
   Users,
   FileText,
   Bell,
-  ClipboardList,
-  BarChart3,
   Truck,
   Settings,
   Menu,
@@ -26,12 +24,10 @@ interface AdminSidebarProps {
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/stations', label: 'Stations', icon: Building2 },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/reports', label: 'Reports', icon: FileText },
   { href: '/admin/notifications', label: 'Notifications', icon: Bell },
-  { href: '/admin/audit-logs', label: 'Audit Logs', icon: ClipboardList },
   { href: '/logistics', label: 'Logistics Hub', icon: Truck },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
