@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { Footer } from '@/components/footer'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { SharedProvider } from '@/lib/shared-context'
+import '@/lib/error-handler'
 import './globals.css'
 
 const inter = Inter({ 
@@ -59,13 +60,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased min-h-screen flex flex-col">
-        <SharedProvider>
-          <ErrorBoundary>
+        <ErrorBoundary>
+          <SharedProvider>
             <div className="flex-1">{children}</div>
             <Footer />
             <Analytics />
-          </ErrorBoundary>
-        </SharedProvider>
+          </SharedProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

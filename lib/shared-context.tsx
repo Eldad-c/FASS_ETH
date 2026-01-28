@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react'
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react'
 
 export interface Report {
   id: string
@@ -48,6 +48,17 @@ export function SharedProvider({ children }: { children: ReactNode }) {
   const [routeIssues, setRouteIssues] = useState<RouteIssue[]>([])
   const [fuelUpdates, setFuelUpdatesMap] = useState<Map<string, any>>(new Map())
   const [deliveryUpdates, setDeliveryUpdatesMap] = useState<Map<string, any>>(new Map())
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [initError, setInitError] = useState<Error | null>(null)
+
+  // Safely initialize context after hydration
+  useEffect(() => {
+    try {
+      setIsInitialized(true)
+    } catch (err) {
+      setInitError(err instanceof Error ? err : new Error('Unknown initialization error'))
+    }
+  }, [])
 
   const addReport = useCallback((report: Report) => {
     setReports((prev) => [report, ...prev])
@@ -87,6 +98,17 @@ export function SharedProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  // Don't render context until client is hydrated, or return safely on error
+  if (!isInitialized) {
+    return <>{children}</>
+  }
+
+  if (initError) {
+    console.error('[v0] SharedProvider initialization error:', initError)
+    // Return children without context on error
+    return <>{children}</>
+  }
+
   return (
     <SharedContext.Provider
       value={{
@@ -110,7 +132,19 @@ export function SharedProvider({ children }: { children: ReactNode }) {
 export function useShared() {
   const context = useContext(SharedContext)
   if (!context) {
-    throw new Error('useShared must be used within SharedProvider')
+    // Return a safe fallback during server-side rendering or before hydration
+    return {
+      reports: [],
+      addReport: () => {},
+      confirmReport: () => {},
+      deleteReport: () => {},
+      routeIssues: [],
+      addRouteIssue: () => {},
+      fuelUpdates: new Map(),
+      setFuelUpdate: () => {},
+      deliveryUpdates: new Map(),
+      setDeliveryUpdate: () => {},
+    }
   }
   return context
 }

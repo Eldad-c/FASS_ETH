@@ -8,6 +8,7 @@ import MapLoader from '@/components/map-loader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { subscribeToAlerts } from '@/lib/actions/subscribe'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -46,30 +47,6 @@ export default async function HomePage() {
     !s.fuel_status.some(f => f.status === 'available')
   ).length
 
-  const handleSubscribe = async (formData: FormData) => {
-    'use server'
-    const email = formData.get('email') as string
-    
-    if (!email || !email.includes('@')) {
-      return { error: 'Invalid email' }
-    }
-
-    // Create an anonymous user record for email subscriptions
-    const result = await supabase
-      .from('subscriptions')
-      .insert({
-        user_id: crypto.randomUUID(),
-        station_id: null,
-        fuel_type: null,
-        notify_on_available: true,
-        notify_on_low: true,
-        notify_on_delivery: true,
-        is_active: true,
-      })
-    
-    return result
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -89,7 +66,7 @@ export default async function HomePage() {
             <p className="text-sm text-muted-foreground mb-4">
               Register your email to receive notifications when fuel becomes available
             </p>
-            <form action={handleSubscribe} className="flex gap-2">
+            <form action={subscribeToAlerts} className="flex gap-2">
               <Input 
                 type="email" 
                 name="email"
