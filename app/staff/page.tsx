@@ -232,9 +232,9 @@ export default function StaffPage() {
                           </div>
 
                           <div className="grid grid-cols-3 gap-4 mb-4">
-                            <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="p-3 bg-muted/50 rounded-lg">
                               <p className="text-xs text-muted-foreground mb-1">Queue Level</p>
-                              <p className="text-lg font-bold text-foreground">{fuel.queue_level} cars</p>
+                              <p className="text-lg font-bold text-foreground">{getQueueLabel(fuel.queue_level)}</p>
                             </div>
                             <div className="p-3 bg-muted/50 rounded-lg">
                               <p className="text-xs text-muted-foreground mb-1">Price</p>

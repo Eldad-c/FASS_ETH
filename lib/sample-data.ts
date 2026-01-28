@@ -1,6 +1,37 @@
 import { Tanker, Trip, Station } from '@/lib/types'
 
-// Sample TotalEnergies stations in Addis Ababa
+// Sample data simplified for logistics
+export const sampleTankers = [
+  { id: 'tnk-001', plate: 'ET-AA-0001', status: 'in_transit', latitude: 9.0120, longitude: 38.7450, currentRoute: 'Bole Station' },
+  { id: 'tnk-002', plate: 'ET-AA-0002', status: 'in_transit', latitude: 9.0300, longitude: 38.7600, currentRoute: 'Sarbet Station' },
+  { id: 'tnk-003', plate: 'ET-AA-0003', status: 'in_transit', latitude: 9.0550, longitude: 38.7700, currentRoute: 'Nifas Silk Station' },
+  { id: 'tnk-004', plate: 'ET-AA-0004', status: 'available', latitude: 9.0400, longitude: 38.7500, currentRoute: 'Base' },
+  { id: 'tnk-005', plate: 'ET-AA-0005', status: 'maintenance', latitude: 9.0100, longitude: 38.7800, currentRoute: 'Maintenance Bay' },
+]
+
+export const sampleStations = [
+  { id: 'stn-001', name: 'TotalEnergies Bole', latitude: 9.0054, longitude: 38.7815 },
+  { id: 'stn-002', name: 'TotalEnergies Sarbet', latitude: 9.0218, longitude: 38.7469 },
+  { id: 'stn-003', name: 'TotalEnergies Nifas Silk', latitude: 9.0392, longitude: 38.7667 },
+  { id: 'stn-004', name: 'TotalEnergies Kazanchis', latitude: 9.0029, longitude: 38.7369 },
+  { id: 'stn-005', name: 'TotalEnergies Megenagna', latitude: 9.0538, longitude: 38.7789 },
+]
+
+export const sampleDeliveries = [
+  { id: 'del-001', tankerId: 'tnk-001', stationId: 'stn-001', fuelType: 'diesel', quantity: 20000, eta: new Date(Date.now() + 30 * 60000).toISOString(), status: 'in_transit' },
+  { id: 'del-002', tankerId: 'tnk-002', stationId: 'stn-002', fuelType: 'benzene_95', quantity: 18000, eta: new Date(Date.now() + 45 * 60000).toISOString(), status: 'in_transit' },
+  { id: 'del-003', tankerId: 'tnk-003', stationId: 'stn-003', fuelType: 'benzene_97', quantity: 22000, eta: new Date(Date.now() + 20 * 60000).toISOString(), status: 'in_transit' },
+]
+
+export const sampleRestockingTimes = [
+  { id: 'rst-001', stationId: 'stn-001', fuelType: 'diesel', currentLevel: 15000, capacity: 50000, nextRestockTime: new Date(Date.now() + 1.5 * 3600000).toISOString() },
+  { id: 'rst-002', stationId: 'stn-001', fuelType: 'benzene_95', currentLevel: 8000, capacity: 40000, nextRestockTime: new Date(Date.now() + 2 * 3600000).toISOString() },
+  { id: 'rst-003', stationId: 'stn-002', fuelType: 'diesel', currentLevel: 22000, capacity: 50000, nextRestockTime: new Date(Date.now() + 3 * 3600000).toISOString() },
+  { id: 'rst-004', stationId: 'stn-003', fuelType: 'benzene_97', currentLevel: 12000, capacity: 40000, nextRestockTime: new Date(Date.now() + 45 * 60000).toISOString() },
+  { id: 'rst-005', stationId: 'stn-004', fuelType: 'diesel', currentLevel: 5000, capacity: 50000, nextRestockTime: new Date(Date.now() + 1 * 3600000).toISOString() },
+]
+
+// TotalEnergies stations in Addis Ababa
 export const SAMPLE_STATIONS: Station[] = [
   {
     id: 'stn-001',
