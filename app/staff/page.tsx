@@ -117,9 +117,9 @@ export default function StaffPage() {
   }
 
   const getQueueLabel = (queueLevel: number): string => {
-    if (queueLevel <= 5) return 'Low Queue'
-    if (queueLevel <= 15) return 'Medium Queue'
-    return 'High Queue'
+    if (queueLevel < 5) return 'Short Queue'        // 0-4 cars
+    if (queueLevel <= 15) return 'Medium Queue'     // 5-15 cars
+    return 'High Queue'                              // 16+ cars
   }
 
   const openEditModal = (fuel: FuelStatus) => {
