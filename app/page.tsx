@@ -7,9 +7,7 @@ import type { StationWithFuelStatus } from '@/lib/types'
 import MapLoader from '@/components/map-loader' // Import the new MapLoader component
 
 export default async function HomePage() {
-  const supabase = await createClient()
-
-  // Updated query to fetch all fields to match the type
+  const supabase = createClient()
   const { data: stations } = await supabase
     .from('stations')
     .select('*, fuel_status(*)')

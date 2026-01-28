@@ -2,14 +2,14 @@ import { createBrowserClient } from '@supabase/ssr'
 import { env } from '@/lib/env'
 
 export function createClient() {
-  const url = env.supabase.url
-  const anonKey = env.supabase.anonKey
+  const supabaseUrl = env.supabase.url || env.supabase.urlFallback
+  const supabaseAnonKey = env.supabase.anonKey || env.supabase.anonKeyFallback
 
-  if (!url || !anonKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
       'Missing Supabase environment variables. Please check your .env.local file.'
     )
   }
 
-  return createBrowserClient(url, anonKey)
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }

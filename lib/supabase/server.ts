@@ -1,14 +1,9 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { env } from '@/lib/env'
 
-/**
- * Especially important if using Fluid compute: Don't put this client in a
- * global variable. Always create a new client within each function when using
- * it.
- */
-export async function createClient() {
-  const cookieStore = await cookies()
+export function createClient() {
+  const cookieStore = cookies()
 
   const supabaseUrl = env.supabase.url || env.supabase.urlFallback
   const supabaseAnonKey = env.supabase.anonKey || env.supabase.anonKeyFallback
@@ -19,26 +14,29 @@ export async function createClient() {
     )
   }
 
-  return createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            )
-          } catch {
-            // The "setAll" method was called from a Server Component.
-            // This can be ignored if you have proxy refreshing
-            // user sessions.
-          }
-        },
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value
+      },
+      set(name: string, value: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value, ...options })
+        } catch (error) {
+          // The `set` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
+      },
+      remove(name: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value: '', ...options })
+        } catch (error) {
+          // The `delete` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
       },
     },
-  )
+  })
 }
