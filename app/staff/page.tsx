@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Edit2 } from 'lucide-react'
+import { Edit2, AlertCircle } from 'lucide-react'
 
 interface FuelStatus {
   id: string
@@ -26,11 +26,23 @@ interface FuelStatus {
   price_per_liter: number
 }
 
+interface FuelReport {
+  id: string
+  station_id: string
+  fuel_type: string
+  reported_status: string
+  description: string | null
+  reporter_email: string
+  created_at: string
+  is_verified: boolean
+}
+
 export default function StaffPage() {
   const [loading, setLoading] = useState(true)
   const [stations, setStations] = useState<any[]>([])
   const [selectedStation, setSelectedStation] = useState('')
   const [fuelStatus, setFuelStatus] = useState<FuelStatus[]>([])
+  const [reports, setReports] = useState<FuelReport[]>([])
   const [refreshing, setRefreshing] = useState(false)
   
   // Modal state
@@ -44,7 +56,28 @@ export default function StaffPage() {
 
   useEffect(() => {
     loadStations()
+    
+    // Subscribe to real-time updates
+    const subscription = supabase
+      .channel('fuel_status_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fuel_status' }, () => {
+        if (selectedStation) {
+          loadFuelStatus(selectedStation)
+        }
+      })
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
+
+  useEffect(() => {
+    if (selectedStation) {
+      loadFuelStatus(selectedStation)
+      loadReports(selectedStation)
+    }
+  }, [selectedStation])
 
   const loadStations = async () => {
     const { data } = await supabase
@@ -55,7 +88,6 @@ export default function StaffPage() {
     if (data && data.length > 0) {
       setStations(data)
       setSelectedStation(data[0].id)
-      loadFuelStatus(data[0].id)
     }
     setLoading(false)
   }
@@ -69,9 +101,25 @@ export default function StaffPage() {
     setFuelStatus(data || [])
   }
 
+  const loadReports = async (stationId: string) => {
+    const { data } = await supabase
+      .from('fuel_reports')
+      .select('*')
+      .eq('station_id', stationId)
+      .order('created_at', { ascending: false })
+      .limit(10)
+    
+    setReports(data || [])
+  }
+
   const handleStationChange = (value: string) => {
     setSelectedStation(value)
-    loadFuelStatus(value)
+  }
+
+  const getQueueLabel = (queueLevel: number): string => {
+    if (queueLevel <= 5) return 'Low Queue'
+    if (queueLevel <= 15) return 'Medium Queue'
+    return 'High Queue'
   }
 
   const openEditModal = (fuel: FuelStatus) => {
@@ -124,7 +172,7 @@ export default function StaffPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Staff Portal</h1>
@@ -152,66 +200,109 @@ export default function StaffPage() {
           </CardContent>
         </Card>
 
-        {/* Fuel Status Grid */}
-        <div className="grid gap-4">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Fuel Status at {currentStation?.name}</h2>
-          
-          {fuelStatus.length === 0 ? (
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-muted-foreground text-center">No fuel status data available</p>
+        {/* Two Column Layout */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Fuel Status - Left Column (2/3) */}
+          <div className="lg:col-span-2">
+            <div className="grid gap-4">
+              <h2 className="text-xl font-semibold text-foreground mb-2">Fuel Status at {currentStation?.name}</h2>
+              
+              {fuelStatus.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground text-center">No fuel status data available</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                fuelStatus.map((fuel) => (
+                  <Card key={fuel.id} className="overflow-hidden hover:border-primary/50 transition-colors">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-4">
+                            <h3 className="text-lg font-semibold text-foreground capitalize">
+                              {fuel.fuel_type.replace('_', ' ')}
+                            </h3>
+                            <Badge 
+                              variant="outline"
+                              className={statusColors[fuel.status as keyof typeof statusColors] || 'bg-gray-500/10 text-gray-700'}
+                            >
+                              {fuel.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div className="p-3 bg-muted/50 rounded-lg">
+                              <p className="text-xs text-muted-foreground mb-1">Queue Level</p>
+                              <p className="text-lg font-bold text-foreground">{fuel.queue_level} cars</p>
+                              <p className="text-xs text-muted-foreground mt-1">{getQueueLabel(fuel.queue_level)}</p>
+                            </div>
+                            <div className="p-3 bg-muted/50 rounded-lg">
+                              <p className="text-xs text-muted-foreground mb-1">Price</p>
+                              <p className="text-lg font-bold text-foreground">ETB {fuel.price_per_liter.toFixed(2)}/L</p>
+                            </div>
+                            <div className="p-3 bg-muted/50 rounded-lg">
+                              <p className="text-xs text-muted-foreground mb-1">Availability</p>
+                              <p className="text-lg font-bold text-foreground">
+                                {fuel.is_available ? 'In Stock' : 'Out of Stock'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={() => openEditModal(fuel)}
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 whitespace-nowrap"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Reports - Right Column (1/3) */}
+          <div className="lg:col-span-1">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <AlertCircle className="h-4 w-4" />
+                  Recent Reports
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {reports.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No reports yet</p>
+                  ) : (
+                    reports.map((report) => (
+                      <div key={report.id} className="p-3 bg-muted/50 rounded-lg border border-border/50">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <p className="text-sm font-medium capitalize">{report.fuel_type.replace('_', ' ')}</p>
+                          <Badge variant="outline" className="text-xs">
+                            {report.reported_status.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{report.reporter_email}</p>
+                        {report.description && (
+                          <p className="text-xs text-muted-foreground mt-1">{report.description}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(report.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </CardContent>
             </Card>
-          ) : (
-            fuelStatus.map((fuel) => (
-              <Card key={fuel.id} className="overflow-hidden hover:border-primary/50 transition-colors">
-                <CardContent className="pt-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-4">
-                        <h3 className="text-lg font-semibold text-foreground capitalize">
-                          {fuel.fuel_type.replace('_', ' ')}
-                        </h3>
-                        <Badge 
-                          variant="outline"
-                          className={statusColors[fuel.status as keyof typeof statusColors] || 'bg-gray-500/10 text-gray-700'}
-                        >
-                          {fuel.status.replace('_', ' ')}
-                        </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground mb-1">Queue Level</p>
-                          <p className="text-lg font-bold text-foreground">{fuel.queue_level} cars</p>
-                        </div>
-                        <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground mb-1">Price</p>
-                          <p className="text-lg font-bold text-foreground">ETB {fuel.price_per_liter.toFixed(2)}/L</p>
-                        </div>
-                        <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground mb-1">Availability</p>
-                          <p className="text-lg font-bold text-foreground">
-                            {fuel.is_available ? 'In Stock' : 'Out of Stock'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={() => openEditModal(fuel)}
-                      variant="outline"
-                      size="sm"
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      Edit
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+          </div>
         </div>
       </div>
 
@@ -252,6 +343,9 @@ export default function StaffPage() {
                   onChange={(e) => setModalQueueLevel(e.target.value)}
                   placeholder="0"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getQueueLabel(parseInt(modalQueueLevel) || 0)}
+                </p>
               </div>
 
               <div>
