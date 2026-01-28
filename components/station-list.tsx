@@ -1,11 +1,9 @@
-'use client'
-
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { MapPin, Phone, Clock, Droplets, Fuel, Gauge, Users, Navigation } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { StationWithFuelStatus, AvailabilityStatus, QueueLevel, FuelType } from '@/lib/types'
+import type { StationWithFuelStatus, AvailabilityStatus, FuelType } from '@/lib/types'
 
 interface StationListProps {
   stations: StationWithFuelStatus[]
@@ -39,12 +37,11 @@ const statusConfig: Record<AvailabilityStatus, { label: string; bgColor: string;
   },
 }
 
-const queueConfig: Record<QueueLevel, { label: string; color: string }> = {
-  none: { label: 'No queue', color: 'text-green-600 dark:text-green-400' },
-  short: { label: '< 5 min', color: 'text-green-600 dark:text-green-400' },
-  medium: { label: '5-15 min', color: 'text-yellow-600 dark:text-yellow-400' },
-  long: { label: '15-30 min', color: 'text-orange-600 dark:text-orange-400' },
-  very_long: { label: '> 30 min', color: 'text-red-600 dark:text-red-400' },
+// Numeric queue level mapping
+function getQueueLabel(queueLevel: number): { label: string; color: string } {
+  if (queueLevel < 5) return { label: 'Short Queue', color: 'text-green-600 dark:text-green-400' }
+  if (queueLevel <= 15) return { label: 'Medium Queue', color: 'text-yellow-600 dark:text-yellow-400' }
+  return { label: 'High Queue', color: 'text-red-600 dark:text-red-400' }
 }
 
 function getOverallStatus(station: StationWithFuelStatus): AvailabilityStatus {
@@ -55,18 +52,13 @@ function getOverallStatus(station: StationWithFuelStatus): AvailabilityStatus {
   return 'out_of_stock'
 }
 
-function getAverageQueueLevel(station: StationWithFuelStatus): QueueLevel {
+function getAverageQueueLevel(station: StationWithFuelStatus): number {
   const queueLevels = station.fuel_status
     .filter(f => f.queue_level && f.status !== 'out_of_stock')
     .map(f => f.queue_level)
   
-  if (queueLevels.length === 0) return 'none'
-  
-  const queueOrder: QueueLevel[] = ['none', 'short', 'medium', 'long', 'very_long']
-  const avgIndex = Math.round(
-    queueLevels.reduce((acc, q) => acc + queueOrder.indexOf(q || 'none'), 0) / queueLevels.length
-  )
-  return queueOrder[avgIndex] || 'none'
+  if (queueLevels.length === 0) return 0
+  return Math.round(queueLevels.reduce((acc, q) => acc + q, 0) / queueLevels.length)
 }
 
 export function StationList({ stations }: StationListProps) {
@@ -140,10 +132,10 @@ export function StationList({ stations }: StationListProps) {
                       >
                         {overallStatusConfig.label}
                       </Badge>
-                      {queueLevel !== 'none' && (
-                        <span className={`flex items-center gap-1 text-xs ${queueConfig[queueLevel].color}`}>
+                      {queueLevel > 0 && (
+                        <span className={`flex items-center gap-1 text-xs ${getQueueLabel(queueLevel).color}`}>
                           <Users className="h-3 w-3" />
-                          {queueConfig[queueLevel].label} wait
+                          {getQueueLabel(queueLevel).label}
                         </span>
                       )}
                     </div>
@@ -194,7 +186,7 @@ export function StationList({ stations }: StationListProps) {
                   {station.fuel_status.map((fuel) => {
                     const config = fuelConfig[fuel.fuel_type as FuelType] || fuelConfig.diesel
                     const status = statusConfig[fuel.status]
-                    const queue = queueConfig[fuel.queue_level || 'none']
+                    const queue = getQueueLabel(fuel.queue_level)
                     const FuelIcon = config.icon
 
                     return (
@@ -232,9 +224,9 @@ export function StationList({ stations }: StationListProps) {
                         )}
                         
                         {/* Queue for available fuels */}
-                        {fuel.status !== 'out_of_stock' && fuel.queue_level && fuel.queue_level !== 'none' && (
+                        {fuel.status !== 'out_of_stock' && fuel.queue_level > 0 && (
                           <span className={`text-[10px] mt-1 ${queue.color}`}>
-                            {queue.label} queue
+                            {queue.label}
                           </span>
                         )}
                       </div>

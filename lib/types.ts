@@ -50,14 +50,15 @@ export interface Station {
   updated_at: string
 }
 
-// Fuel status type with queue level
+// Fuel status type with queue level (numeric)
 export interface FuelStatus {
   id: string
   station_id: string
   fuel_type: FuelType
   status: AvailabilityStatus
   price_per_liter: number | null
-  queue_level: QueueLevel
+  queue_level: number
+  is_available: boolean
   last_updated_by: string | null
   updated_at: string
   trust_score?: number | null
