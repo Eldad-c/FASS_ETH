@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, Truck, MapPin, Clock, AlertCircle, Fuel, Navigation } from 'lucide-react'
 import LogisticsMapComponent from '@/components/logistics-map'
+import { RouteEditorModal } from '@/components/route-editor-modal'
+import { DeliveryReportModal } from '@/components/delivery-report-modal'
 import { sampleTankers, sampleStations, sampleDeliveries, sampleRestockingTimes } from '@/lib/sample-data'
 
 interface Delivery {
@@ -21,9 +23,13 @@ interface Delivery {
 
 export default function LogisticsHubPage() {
   const [selectedTanker, setSelectedTanker] = useState<string | null>(null)
+  const [routeEditorOpen, setRouteEditorOpen] = useState(false)
+  const [reportViewOpen, setReportViewOpen] = useState(false)
+  const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
+  const [deliveries, setDeliveries] = useState(sampleDeliveries)
 
   // Calculate active deliveries
-  const activeDeliveries = sampleDeliveries.filter((d: Delivery) => d.status === 'in_transit' || d.status === 'arrived')
+  const activeDeliveries = deliveries.filter((d: Delivery) => d.status === 'in_transit' || d.status === 'arrived')
   
   // Get fleet summary
   const fleetSummary = {
@@ -43,6 +49,26 @@ export default function LogisticsHubPage() {
     if (diffMinutes < 60) return `${diffMinutes}m`
     return `${Math.floor(diffMinutes / 60)}h ${diffMinutes % 60}m`
   }
+
+  const handleRouteChange = (tankerId: string, newStationId: string) => {
+    // Update the delivery with new station
+    setDeliveries((prev) =>
+      prev.map((delivery) =>
+        delivery.tankerId === tankerId
+          ? { ...delivery, stationId: newStationId }
+          : delivery
+      )
+    )
+    setSelectedTanker(null)
+  }
+
+  const handleViewDetails = (delivery: any) => {
+    setSelectedDelivery(delivery)
+    setReportViewOpen(true)
+  }
+
+  const currentTanker = sampleTankers.find((t) => t.id === selectedTanker)
+  const currentDelivery = deliveries.find((d) => d.tankerId === selectedTanker)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -229,10 +255,26 @@ export default function LogisticsHubPage() {
                       Current Route: {tanker.currentRoute || 'Not assigned'}
                     </p>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="text-xs flex-1">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-xs flex-1"
+                        onClick={() => {
+                          setSelectedTanker(tanker.id)
+                          setRouteEditorOpen(true)
+                        }}
+                      >
                         Change Route
                       </Button>
-                      <Button size="sm" variant="outline" className="text-xs flex-1">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-xs flex-1"
+                        onClick={() => {
+                          const delivery = deliveries.find(d => d.tankerId === tanker.id)
+                          if (delivery) handleViewDetails(delivery)
+                        }}
+                      >
                         View Details
                       </Button>
                     </div>
@@ -243,6 +285,26 @@ export default function LogisticsHubPage() {
           </Card>
         </div>
       </main>
+
+      {/* Route Editor Modal */}
+      {currentTanker && currentDelivery && (
+        <RouteEditorModal
+          open={routeEditorOpen}
+          onOpenChange={setRouteEditorOpen}
+          tanker={currentTanker}
+          currentDelivery={currentDelivery}
+          onRouteChange={handleRouteChange}
+        />
+      )}
+
+      {/* Delivery Report Modal */}
+      {selectedDelivery && (
+        <DeliveryReportModal
+          open={reportViewOpen}
+          onOpenChange={setReportViewOpen}
+          delivery={selectedDelivery}
+        />
+      )}
     </div>
   )
 }

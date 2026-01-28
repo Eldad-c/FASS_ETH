@@ -15,7 +15,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Edit2, AlertCircle } from 'lucide-react'
+import { Edit2, AlertCircle, CheckCircle2, Trash2 } from 'lucide-react'
+import { initialReports, Report } from '@/lib/reports-data'
 
 interface FuelStatus {
   id: string
@@ -43,6 +44,7 @@ export default function StaffPage() {
   const [selectedStation, setSelectedStation] = useState('')
   const [fuelStatus, setFuelStatus] = useState<FuelStatus[]>([])
   const [reports, setReports] = useState<FuelReport[]>([])
+  const [systemReports, setSystemReports] = useState<Report[]>(initialReports)
   const [refreshing, setRefreshing] = useState(false)
   
   // Modal state
@@ -161,6 +163,20 @@ export default function StaffPage() {
     }
   }
 
+  const confirmReport = (reportId: string) => {
+    setSystemReports((prev) =>
+      prev.map((report) =>
+        report.id === reportId
+          ? { ...report, status: 'confirmed', confirmedAt: new Date().toISOString() }
+          : report
+      )
+    )
+  }
+
+  const deleteReport = (reportId: string) => {
+    setSystemReports((prev) => prev.filter((report) => report.id !== reportId))
+  }
+
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
 
   const currentStation = stations.find(s => s.id === selectedStation)
@@ -199,6 +215,89 @@ export default function StaffPage() {
             </Select>
           </CardContent>
         </Card>
+
+        {/* System Reports Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Pending Reports - Verify & Manage
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {systemReports.filter(r => r.status === 'pending').length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No pending reports</p>
+              ) : (
+                systemReports
+                  .filter(r => r.status === 'pending')
+                  .map((report) => (
+                    <div key={report.id} className="p-4 border border-border rounded-lg bg-muted/50">
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-semibold text-sm">{report.reportedBy}</p>
+                            <Badge variant="outline" className={`text-xs ${report.severity === 'high' ? 'bg-red-500/10 text-red-700' : report.severity === 'medium' ? 'bg-yellow-500/10 text-yellow-700' : 'bg-blue-500/10 text-blue-700'}`}>
+                              {report.severity.toUpperCase()}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-foreground">{report.description}</p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {new Date(report.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => confirmReport(report.id)}
+                          className="gap-2 flex-1 bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                          Confirm
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deleteReport(report.id)}
+                          className="gap-2 flex-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Confirmed Reports */}
+        {systemReports.filter(r => r.status === 'confirmed').length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CheckCircle2 className="h-4 w-4" />
+                Confirmed Reports ({systemReports.filter(r => r.status === 'confirmed').length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {systemReports
+                  .filter(r => r.status === 'confirmed')
+                  .map((report) => (
+                    <div key={report.id} className="p-3 border border-green-200/50 bg-green-50/50 dark:bg-green-950/20 rounded-lg text-sm">
+                      <p className="font-medium text-green-900 dark:text-green-100">{report.reportedBy} - {report.description}</p>
+                      <p className="text-xs text-green-800 dark:text-green-200 mt-1">
+                        Confirmed: {new Date(report.confirmedAt!).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Two Column Layout */}
         <div className="grid lg:grid-cols-3 gap-6">

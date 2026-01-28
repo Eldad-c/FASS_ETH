@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { ChevronLeft, Truck, MapPin, AlertCircle, Send, Navigation, Clock, Package } from 'lucide-react'
+import { ChevronLeft, Truck, MapPin, AlertCircle, Send, Navigation, Clock, Package, CheckCircle2 } from 'lucide-react'
 import { sampleTankers, sampleStations } from '@/lib/sample-data'
+import { DriverMap } from '@/components/driver-map'
 
 interface RouteUpdate {
   id: string
@@ -26,6 +27,8 @@ interface RouteIssue {
 export default function DriverPage() {
   const [selectedDriver, setSelectedDriver] = useState(sampleTankers[0])
   const [issueReport, setIssueReport] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
   const [reportedIssues, setReportedIssues] = useState<RouteIssue[]>([
     {
       id: 'issue-001',
@@ -51,8 +54,13 @@ export default function DriverPage() {
 
   const currentDestination = sampleStations.find(s => s.id === 'stn-001')
 
-  const handleReportIssue = () => {
+  const handleReportIssue = async () => {
     if (!issueReport.trim()) return
+
+    setSubmitting(true)
+    
+    // Simulate API submission
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
     const newIssue: RouteIssue = {
       id: `issue-${Date.now()}`,
@@ -63,6 +71,11 @@ export default function DriverPage() {
 
     setReportedIssues([newIssue, ...reportedIssues])
     setIssueReport('')
+    setSubmitting(false)
+    setSubmitSuccess(true)
+    
+    // Clear success message after 3 seconds
+    setTimeout(() => setSubmitSuccess(false), 3000)
   }
 
   const getTimeAgo = (timestamp: string) => {
@@ -112,6 +125,26 @@ export default function DriverPage() {
 
       {/* Main Content */}
       <main className="max-w-screen-2xl mx-auto px-4 py-6 pb-12">
+        {/* Map Section */}
+        <Card className="overflow-hidden mb-6 h-[400px]">
+          <CardHeader className="bg-muted/50">
+            <CardTitle className="flex items-center gap-2">
+              <Navigation className="h-5 w-5" />
+              Live Route Tracking
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 h-[calc(100%-60px)]">
+            <DriverMap 
+              driverLocation={{ latitude: selectedDriver.latitude, longitude: selectedDriver.longitude }}
+              destination={{ 
+                latitude: currentDestination?.latitude || 9.0054,
+                longitude: currentDestination?.longitude || 38.7815,
+                name: currentDestination?.name || 'TotalEnergies Bole'
+              }}
+            />
+          </CardContent>
+        </Card>
+
         {/* Driver Info & Location */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Driver Overview */}
@@ -212,10 +245,30 @@ export default function DriverPage() {
                   value={issueReport}
                   onChange={(e) => setIssueReport(e.target.value)}
                   className="min-h-24 resize-none"
+                  disabled={submitting}
                 />
-                <Button onClick={handleReportIssue} className="w-full gap-2" disabled={!issueReport.trim()}>
-                  <Send className="h-4 w-4" />
-                  Submit Issue Report
+                {submitSuccess && (
+                  <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-green-700 dark:text-green-200">Issue reported successfully!</span>
+                  </div>
+                )}
+                <Button 
+                  onClick={handleReportIssue} 
+                  className="w-full gap-2" 
+                  disabled={!issueReport.trim() || submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <div className="h-4 w-4 rounded-full border-2 border-muted-foreground border-t-primary animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Submit Issue Report
+                    </>
+                  )}
                 </Button>
 
                 {/* Reported Issues */}
