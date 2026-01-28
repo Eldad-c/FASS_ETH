@@ -12,7 +12,6 @@ const optionalEnvVars = {
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
   SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
-  GEBETA_MAPS_API_KEY: process.env.GEBETA_MAPS_API_KEY,
   NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL,
 } as const
 
@@ -52,7 +51,6 @@ export function validateEnv() {
       anonKeyFallback:
         optionalEnvVars.SUPABASE_ANON_KEY || optionalEnvVars.SUPABASE_PUBLISHABLE_KEY,
     },
-    gebetaMapsApiKey: optionalEnvVars.GEBETA_MAPS_API_KEY,
     devSupabaseRedirectUrl: optionalEnvVars.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL,
   }
 }
@@ -75,7 +73,6 @@ function buildFallbackEnv(): Env {
       urlFallback: process.env.SUPABASE_URL,
       anonKeyFallback: process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY,
     },
-    gebetaMapsApiKey: process.env.GEBETA_MAPS_API_KEY,
     devSupabaseRedirectUrl: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL,
   }
 }
