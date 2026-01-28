@@ -131,7 +131,7 @@ export function StaffDashboard({ profile, station, pendingReports: initialReport
     const updateData: Record<string, string | number | null> = {
       updated_by: profile.id,
       submitted_by: profile.id,
-      last_updated: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       approval_status: requiresApproval ? 'PENDING' : 'APPROVED',
     }
 
